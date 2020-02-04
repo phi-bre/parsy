@@ -1,0 +1,10 @@
+start: rule+
+identifier: [A-Za-z0-9]+
+string: ( ['] { '\\\'' . }* ['] )
+pattern: ( '[' .* ']' )
+modifier: [*+?]
+any: '.'
+rule: ( identifier ':' expression )
+sequence: ( '(' expression+ ')' )
+alternation: ( '{' expression+ '}' )
+expression: ( { sequence alternation string any identifier } modifier? )
