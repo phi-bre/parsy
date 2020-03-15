@@ -1,13 +1,49 @@
-export {default as lexer} from "./lexer";
-export {default as parser} from "./parser";
-export {default as grammar} from "./grammar";
-export {default as reference} from "./reference";
+import {tokenize} from './lexer';
 
-export default function parsy(layers: Function[] = []): any {
-    const pipeline = (source: string) => {
-        const result: any = layers.reduce((previous, current) => current(previous), source);
-        return Symbol.iterator in result ? [...result] : result;
-    };
-    pipeline.use = (layer: Function) => (layers.push(layer), layer);
-    return pipeline;
+export * from './matchers';
+
+export interface Token {
+    type: string | symbol;
+    value: string;
+    length: number;
+    column: number;
+    line: number;
+    index: number;
+}
+
+export interface Terminal {
+    (input: string, index: number): Token | undefined;
+}
+
+export interface Rule {
+    (tokens: Token[]): boolean;
+}
+
+export interface Rules<T> {
+    [label: string]: (t: { [P in keyof this]: Rule }) => Rule;
+}
+
+export interface Terminals {
+    [label: string]: string | RegExp;
+}
+
+export interface ParsyOptions<T = Terminals> {
+    ignore: RegExp;
+    terminals: T;
+    rules: Rules<T>;
+}
+
+function assert(property: any, message: string) {
+    if (!property) {
+        throw message;
+    }
+}
+
+export function parsy(options: ParsyOptions) {
+    return {
+        scan(input: string) {
+            assert(options.terminals, 'No terminals provided.');
+            return tokenize(options)(input);
+        },
+    }
 }
