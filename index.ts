@@ -1,63 +1,40 @@
-import parsy, {grammar, lexer, reference, parser} from './src';
+import {parsy, or, maybe, multiple} from './src';
+const {terminal, define, start} = parsy(/[ \n\r]+/);
 
-const pipeline = parsy();
+const left_brace = terminal('{');
+const right_brace = terminal('}');
+const left_bracket = terminal('[');
+const right_bracket = terminal(']');
+const comma = terminal(',');
+const colon = terminal(':');
+const nil = terminal('null');
+const number = terminal(/[0-9]+/);
+const boolean = terminal(/true|false/);
+const string = terminal(/"(.*)"/);
 
-pipeline.use(lexer({
-    '.': /[ \n\r]+/,
-    boolean: /true|false/,
-    number: /(\d+)?\.?\d+/,
-    string: /"(.*?)"/,
-    null: /null/,
-    // comment: /\/\*(.*?)\*\//,
-    // left_brace: /{/,
-    // right_brace: /}/,
-    // left_bracket: /\[/,
-    // right_bracket: /]/,
-    // colon: /:/,
-    // comma: /,/,
-}));
+const value = define();
+const object = define();
+const array = define();
+const property = define(string, colon, value);
 
-// pipeline.use(grammar({
-//     value: 'number | string | boolean | null | object | array',
-//     object: 'left_brace',
-// }));
+value.assign(or(string, number, boolean, nil, object, array));
 
-// pipeline.use(grammar('... (object | array) ...', {
-//     ...symbols,
-//     '...': 'whitespace?',
-//     value: '(number | string | boolean | null | object | array)',
-//     pair: 'string . colon . value',
-//     object: 'left_brace ... ((pair ... comma ...)* pair)? ... right_brace',
-//     array: 'left_bracket ((value ... comma ...)* value)? right_bracket',
-//     arithmetic: (...tokens: string[]) => ({})
-// }));
+object.assign(
+    left_brace,
+    maybe(
+        property,
+        multiple(comma, property),
+    ),
+    right_brace,
+);
 
-const {value, number, string, boolean, nil, object, array, property} = reference;
-const a = (...args) => {};
-const g = (...args) => {};
-const m = (...args) => {};
-const s = (...args) => {};
+array.assign(
+    left_bracket,
+    maybe(
+        value,
+        multiple(comma, value),
+    ),
+    right_bracket,
+);
 
-pipeline.use(parser({
-    value: a(number, string, boolean, nil, object, array),
-    property: g(string, ':', value),
-    object: g('{', m(property, m(',', property)), '}'),
-    array: g('[', m(value, m(',', value)), ']'),
-}));
-
-pipeline.use(transformer({
-    property: (string, value) => ({key: string, value}),
-    object: (value) => ({}),
-    array: (value) => {}
-}));
-
-console.log(grammar(`
-
-begin: value;
-value: boolean | number | string | array | object;
-property: string colon   value;
-array: "[" (property comma)* property? "]";
-
-`)(`
-true
-`));
+console.log(start(value));

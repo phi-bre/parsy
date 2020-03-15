@@ -1,7 +1,7 @@
 import {lexer} from './index';
 
 const tokenizer = lexer({
-    '.whitespace': /[ \n\r]+/,
+    _: /[ \n\r]+/,
     string: /"(.*?)'/,
     regex: /\/(.*?)\//,
     literal: /[A-z0-9]+/,

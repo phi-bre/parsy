@@ -28,7 +28,7 @@ test: {
     as string: .property;
 }
 
-test: () -> {
+test: (test: { test }) -> {
     property: 'test'
 }
 
@@ -47,7 +47,7 @@ test: () {
     value = var * 10 + value
 }
 
-person: [firstname: string] { 
+person: [firstname: string] {
     eat: { /* Do some shit */ }
     firstname: firstname
     lastname: string
@@ -62,6 +62,113 @@ person: [firstname: string] {
 peter: person ['Peter'] { asd }
 
 peter.eat
+
+```
+define loop (array: []) :::
+
+:::
+
+define loop :::
+
+:::
+
+loop {
+    print ('Hello World!')
+}
+
+map (books) (book: Book) {
+    
+}
+
+for (book: string) in (collected) {
+
+} map (book) {
+
+}
+
+
+
+
+define template (name: identifier) :::
+function :identifier: () {
+
+}
+:::
+
+define object (identifier) :::
+let :name: = {};
+:::
+
+define type (identifier) (parameters) (block) :::
+function :name: (:parameters:) {
+    :block:
+}
+:::
+
+define type (identifier) (block) :::
+function :name: () {
+    :block:
+}
+:::
+
+type animal {
+    test
+}
+
+object test
+number num
+animal dog = animal + () {
+    name: 'Doggy'
+    as string { name }
+}
+
+template test {
+    div {
+        attribute: 'Hello World'
+        children: [
+            
+        ]
+
+        for i in 0..10 {
+            p 'Hello World! {i}'
+        }
+
+        await promise with {
+            
+        }
+    }
+}
+
+
+const a = 10;
+const b = <div>>;
+
+const add = a => b => a * b;
+const double => add(2);
+
+const add = reactive(a + b);
+consolr.log(result)
+
+
+const arr = [ 1, 2, 3 ];
+const tmp = arr[0];
+arr[0] = arr[1];
+arr[1] = tmp;
+[2,2]
+
+const blukb = [... arr[1], arr[0], arr[2], ...]
+
+const result =  a + b ;
+
+a=11
+
+
+
+
+
+
+
+```
 
 # Value
 There are only objects

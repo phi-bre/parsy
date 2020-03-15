@@ -21,7 +21,7 @@ export default function lexer<T extends { [type: string]: RegExp }>(terminals: T
                     // column = offset / line;
                     offset += value.length - 1;
                     line += value.split('\n').length - 1;
-                    if (type[0] !== '.') {
+                    if (type !== '_') {
                         yield {type, value, column, line, offset};
                     }
                     continue main;

@@ -1,3 +1,46 @@
+
+terminal identifier { [a-Z0-9]+ }
+pattern module { identifier '.' module }
+
+context statement namespace (module: module) {
+    
+}
+
+listener namespace (namespace) :::
+
+:::
+
+:::
+
+namespace io.inkable.stackframe.parser.core {
+
+    function terminal {
+         parameters {
+             declaration: {
+                 type: string
+                 default: '0'
+                 description: '
+                    Goes beyond the limits of what was deemed to be imaginable!
+                 '
+                 example: '[a-Z]+'
+             }
+         }
+         
+         returns :::
+             A representation of the thing in another form.
+         :::
+        
+         
+         
+     }
+}
+
+
+:::
+
+
+
+
 ## Getting started
 
 Glossary:
@@ -19,8 +62,6 @@ hoisting
 A programming language is no different from a normal parser:
 It just translates the language's instructions into pure logic the machine can understand.
 A parser does the same, instead it just does it from mere characters.
-
-
 
 ```
 terminal literal [A-z]+
