@@ -1,49 +1,77 @@
 import {tokenize} from './lexer';
+import {tree} from './builder';
 
-export * from './matchers';
+export * from './builder';
 
-export interface Token {
-    type: string | symbol;
-    value: string;
-    length: number;
-    column: number;
-    line: number;
+export interface State<T, R> {
+    tokens: Tokens<T>;
+    node: Node<T, R>;
+    matchers: {
+        [type: string]: any;
+    }
+}
+
+export interface Tokens<T, S = { index: number, line: number, column: number }> extends Iterable<Token<T>> {
+    cache: Token<T>[];
     index: number;
+    line: number;
+    column: number;
+    readonly done: boolean;
+    readonly peek: Token<T>;
+    readonly next: Token<T>;
+    readonly position: S;
+    reset(position: S);
 }
 
-export interface Terminal {
-    (input: string, index: number): Token | undefined;
+export interface Node<T, R> extends Array<Token<R> | Node<T, R>> {
+    parent: Node<T, R>;
+    type: T;
 }
 
-export interface Rule {
-    (tokens: Token[]): boolean;
+export interface Token<T> {
+    type: T;
+    value: string;
+    column?: number;
+    line?: number;
+    index?: number;
 }
 
-export interface Rules<T> {
-    [label: string]: (t: { [P in keyof this]: Rule }) => Rule;
+export interface Matcher<T, R> {
+    (store: State<T, R>);
 }
 
-export interface Terminals {
-    [label: string]: string | RegExp;
+export interface Terminal<T> {
+    (input: string, index: number): Token<T> | undefined;
 }
 
-export interface ParsyOptions<T = Terminals> {
+export type Reference<T, R> = any // ((keyof (T | R)) | symbol);
+
+export interface ParsyOptions<T, R> {
     ignore: RegExp;
-    terminals: T;
-    rules: Rules<T>;
+    terminals: {
+        [P in keyof T]: string | RegExp;
+    };
+    rules: {
+        [P in keyof R]: symbol;
+    };
+    start: keyof R;
 }
 
-function assert(property: any, message: string) {
-    if (!property) {
-        throw message;
-    }
-}
+export function parsy<T, R>(options: ParsyOptions<T, R>) {
 
-export function parsy(options: ParsyOptions) {
-    return {
-        scan(input: string) {
-            assert(options.terminals, 'No terminals provided.');
-            return tokenize(options)(input);
-        },
+    function scan(input: string) {
+        if (!options.terminals)
+            throw 'No terminals provided.';
+        return tokenize(options)(input);
     }
+
+    function build(input: string) {
+        if (!options.rules)
+            throw 'No rules provided.';
+        if (!options.start)
+            throw 'No start provided.';
+        return tree(options)(scan(input));
+    }
+
+    return {scan, build};
 }

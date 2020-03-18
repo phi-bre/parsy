@@ -12,61 +12,40 @@ describe('parsy', () => {
             comma: ',',
             colon: ':',
             null: 'null',
-            number: /((\d+)?\.?\d+)/,
+            number: /(\d+)?\.?\d+/,
             boolean: /true|false/,
-            string: /"((?:[^"\\]|\\.)*)"/,
+            string: /"(?:[^"\\]|\\.)*"/,
         },
+        start: 'value',
         rules: {
-            value: t => (
-                alternation(
-                    t.string,
-                    t.number,
-                    t.boolean,
-                    t.null,
-                    t.object,
-                    t.array,
-                )
-            ),
-            object: t => (
-                sequence(
-                    t.left_brace,
-                    optional(
-                        t.property,
-                        star(
-                            t.comma,
-                            t.property,
-                        ),
-                    ),
-                    t.right_brace,
-                )
-            ),
-            array: t => (
-                sequence(
-                    t.left_bracket,
-                    optional(
-                        t.value,
-                        star(
-                            t.comma,
-                            t.value,
-                        ),
-                    ),
-                    t.right_bracket,
-                )
-            ),
+            value: alternation('string', 'number', 'boolean', 'null', 'object', 'array'),
+            property: sequence('string', 'colon', 'value'),
+            object: sequence('left_brace', optional('property', star('comma', 'property')), 'right_brace'),
+            array: sequence('left_bracket', optional('value', star('comma', 'value')), 'right_bracket'),
         },
     });
 
-    describe('tokenization', () => {
+    describe('#scan', () => {
         const input = '[10.5, false, null, [], {"hello": "world"}]';
-        const tokens = ['[', '10.5', ',', 'false', ',', 'null', ',', '[', ']', ',', '{', 'hello', ':', 'world', '}', ']'];
+        const tokens = ['[', '10.5', ',', 'false', ',', 'null', ',', '[', ']', ',', '{', '"hello"', ':', '"world"', '}', ']'];
         const output = [...instance.scan(input)];
 
-        it('should match the right tokens', function () {
+        it('should match the right tokens', () => {
             expect(output.map(token => token.value)).toEqual(tokens);
         });
 
-        it('should output the right indexes', function () {
+        it('should output the right indexes', () => {
+            // TODO
+        });
+    });
 
+    describe('#build', () => {
+        const input = '{"hello": "world"}';
+        const tree = [];
+        const output = instance.build(input);
+
+        it('should build the right tree', () => {
+            expect(output).toEqual(tree);
         });
     });
 });

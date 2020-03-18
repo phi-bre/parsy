@@ -1,50 +1,82 @@
-import {ParsyOptions, Terminal, Token} from './index';
+import {ParsyOptions, Terminal, Token, Tokens} from './index';
 
-export function tokenize(options: ParsyOptions) {
+export function tokenize<T, R>(options: ParsyOptions<T, R>) {
     const symbol = Symbol('ignore');
-    const terminals = Object
-        .keys(options.terminals)
-        .map(type => terminal(type, options.terminals[type]));
-    terminals.push(terminal(symbol, options.ignore));
+    const terminals = [] as Terminal<T>[];
+    for (const type in options.terminals) {
+        terminals.push(terminal<T>(type as any, options.terminals[type]));
+    }
+    terminals.push(terminal(symbol as any, options.ignore));
 
-    return function* (string: string) {
-        let index = 0;
-        let lines = 0;
-        let column = 0;
+    return function (input: string): Tokens<T> {
+        return {
+            cache: [],
+            index: 0,
+            line: 0,
+            column: 0,
+            get peek() {
+                const {index, cache} = this;
 
-        while (index < string.length) {
-            let token: Token | undefined;
+                if (index in cache) {
+                    return cache[index];
+                }
 
-            for (const terminal of terminals) {
-                token = terminal(string, index);
-                if (token) break;
-            }
+                for (const terminal of terminals) {
+                    const token = terminal(input, index);
+                    if (token) {
+                        return token;
+                    }
+                }
 
-            if (token && token.type !== symbol) {
-                token.index = index;
-                token.line = lines;
-                token.column = column;
-                yield token;
-            }
-
-            if (token) {
+                throw 'Unexpected token: ' + input[index];
+            },
+            get next() {
+                const {index, line, column} = this;
+                const token = this.peek;
                 const newlines = token.value.split('\n');
-                index += token.length;
-                lines += newlines.length - 1;
-                column = newlines[newlines.length - 1].length;
-                continue;
-            }
+                this.index += token.value.length;
+                this.line += newlines.length - 1;
+                this.column = newlines[newlines.length - 1].length;
 
-            throw 'Unexpected token: ' + string[index];
+                // @ts-ignore
+                if (token.type === symbol) {
+                    return this.next;
+                }
+
+                token.index = index;
+                token.line = line;
+                token.column = column;
+                return token;
+            },
+            get position() {
+                return {
+                    index: this.index,
+                    line: this.line,
+                    column: this.column,
+                };
+            },
+            get done() {
+                return this.index < input.length;
+            },
+            reset({index, line, column}) {
+                this.index = index;
+                this.line = line;
+                this.column = column;
+            },
+            *[Symbol.iterator]() {
+                while (this.index < input.length) {
+                    yield this.next;
+                }
+            }
         }
     }
 }
 
-function terminal(type: string | symbol, value: string | RegExp): Terminal {
+function terminal<T>(type: T, value: string | RegExp): Terminal<T> {
     if (typeof value === 'string') {
         return function (input, index) {
             if (input.startsWith(value, index)) {
-                return {type, value, length: value.length} as Token;
+                return {type, value};
             }
         }
     } else {
@@ -53,8 +85,7 @@ function terminal(type: string | symbol, value: string | RegExp): Terminal {
             pattern.lastIndex = index;
             const match = pattern.exec(input);
             if (match) {
-                const value = match[1] || match[0];
-                return {type, value, length: match[0].length} as Token;
+                return {type, value: match[0]};
             }
         };
     }
