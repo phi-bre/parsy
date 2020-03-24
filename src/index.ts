@@ -1,77 +1,91 @@
-import {tokenize} from './lexer';
-import {tree} from './builder';
-
 export * from './builder';
+export * from './lexer';
 
-export interface State<T, R> {
-    tokens: Tokens<T>;
-    node: Node<T, R>;
-    matchers: {
-        [type: string]: any;
-    }
+export interface Position {
+    index: number;
+    line: number;
+    column: number;
 }
 
-export interface Tokens<T, S = { index: number, line: number, column: number }> extends Iterable<Token<T>> {
-    cache: Token<T>[];
+export interface Tokens extends Iterable<Token> {
+    input: string;
+    cache: Token[];
     index: number;
     line: number;
     column: number;
     readonly done: boolean;
-    readonly peek: Token<T>;
-    readonly next: Token<T>;
-    readonly position: S;
-    reset(position: S);
+    readonly peek: Token | undefined;
+    readonly next: Token;
+    readonly position: Position;
+    reset(position: Position);
 }
 
-export interface Node<T, R> extends Array<Token<R> | Node<T, R>> {
-    parent: Node<T, R>;
-    type: T;
+export class Token {
+    constructor(
+        public type: string | symbol,
+        public value: string,
+        public position: Position,
+    ) {}
 }
 
-export interface Token<T> {
-    type: T;
-    value: string;
-    column?: number;
-    line?: number;
-    index?: number;
+export class Node extends Array<Node | Token> {
+    constructor(
+        public type: string,
+        public parent?: Node,
+    ) {
+        super();
+    }
 }
 
-export interface Matcher<T, R> {
-    (store: State<T, R>);
-}
-
-export interface Terminal<T> {
-    (input: string, index: number): Token<T> | undefined;
-}
-
-export type Reference<T, R> = any // ((keyof (T | R)) | symbol);
-
-export interface ParsyOptions<T, R> {
-    ignore: RegExp;
-    terminals: {
-        [P in keyof T]: string | RegExp;
-    };
+export interface BuilderOptions {
+    start: string;
     rules: {
-        [P in keyof R]: symbol;
+        [rule: string]: symbol;
     };
-    start: keyof R;
+    scopes: {
+        [scope: string]: symbol;
+    };
+    terminals: {
+        [terminal: string]: string | RegExp;
+    };
 }
 
-export function parsy<T, R>(options: ParsyOptions<T, R>) {
+export interface LexerOptions {
+    ignore?: string | RegExp;
+    terminals: {
+        [terminal: string]: string | RegExp;
+    };
+}
 
-    function scan(input: string) {
-        if (!options.terminals)
-            throw 'No terminals provided.';
-        return tokenize(options)(input);
-    }
+export type Matcher = (state: State) => void;
+export type Terminal = (input: Tokens) => Token | void;
+export type Reference = symbol | string | number;
+export type Layer<I, O> = (input: I) => O;
+export type ParsyOptions = LexerOptions & BuilderOptions;
 
-    function build(input: string) {
-        if (!options.rules)
-            throw 'No rules provided.';
-        if (!options.start)
-            throw 'No start provided.';
-        return tree(options)(scan(input));
-    }
+export interface State {
+    tokens: Tokens;
+    node: Node;
+    matchers: {
+        [matcher: string]: Matcher;
+    };
+}
 
-    return {scan, build};
+export interface Parsy<R> {
+    (input: string): R;
+    use<T>(layer: (options: ParsyOptions) => Layer<R, T>): Parsy<T>;
+}
+
+export function parsy(options: ParsyOptions): Parsy<string> {
+    let pipe = i => i;
+    const instance = (input: string) => pipe(input);
+
+    instance.use = <I, O>(layer: (config) => Layer<I, O>) => {
+        const applied = layer(options);
+        const previous = pipe;
+        pipe = (input: I) => applied(previous(input));
+        return instance;
+    };
+
+    return instance;
 }

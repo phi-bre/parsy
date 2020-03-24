@@ -1,8 +1,8 @@
-import {alternation, optional, parsy, sequence, star} from '../src';
+import {alternation, builder, lexer, optional, parsy, sequence, star} from '../src';
 
-describe('parsy', () => {
+describe('#parsy', () => {
 
-    const instance = parsy({
+    const config = {
         ignore: /[ \n\r]+/,
         terminals: {
             left_brace: '{',
@@ -18,34 +18,21 @@ describe('parsy', () => {
         },
         start: 'value',
         rules: {
-            value: alternation('string', 'number', 'boolean', 'null', 'object', 'array'),
+            value: alternation('null', 'number', 'boolean', 'string', 'object', 'array'),
             property: sequence('string', 'colon', 'value'),
+        },
+        scopes: {
             object: sequence('left_brace', optional('property', star('comma', 'property')), 'right_brace'),
             array: sequence('left_bracket', optional('value', star('comma', 'value')), 'right_bracket'),
         },
-    });
+    };
 
-    describe('#scan', () => {
-        const input = '[10.5, false, null, [], {"hello": "world"}]';
-        const tokens = ['[', '10.5', ',', 'false', ',', 'null', ',', '[', ']', ',', '{', '"hello"', ':', '"world"', '}', ']'];
-        const output = [...instance.scan(input)];
+    const instance = parsy(config)
+        .use(lexer)
+        .use(builder);
 
-        it('should match the right tokens', () => {
-            expect(output.map(token => token.value)).toEqual(tokens);
-        });
 
-        it('should output the right indexes', () => {
-            // TODO
-        });
-    });
-
-    describe('#build', () => {
-        const input = '{"hello": "world"}';
-        const tree = [];
-        const output = instance.build(input);
-
-        it('should build the right tree', () => {
-            expect(output).toEqual(tree);
-        });
+    it('should not crash', () => {
+        expect(instance('[10, false, {"test": [null]}]')).toBeTruthy();
     });
 });
