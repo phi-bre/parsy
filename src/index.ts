@@ -1,3 +1,5 @@
+import {indent} from './utils';
+
 export * from './builder';
 export * from './lexer';
 
@@ -17,23 +19,39 @@ export interface Tokens extends Iterable<Token> {
     readonly peek: Token | undefined;
     readonly next: Token;
     readonly position: Position;
+
     reset(position: Position);
 }
 
 export class Token {
     constructor(
-        public type: string | symbol,
+        public type: string | number | symbol,
         public value: string,
         public position: Position,
-    ) {}
+    ) {
+    }
+
+    toString(level: number = 0) {
+        return indent(level) + this.type.toString() + ' { ' + this.value + ' }\n';
+    }
 }
 
 export class Node extends Array<Node | Token> {
     constructor(
-        public type: string,
+        public type: string | number | symbol,
         public parent?: Node,
+        ...children: (Node | Token)[]
     ) {
-        super();
+        super(...children);
+    }
+
+    toString(level: number = 0): string {
+        const space = indent(level);
+        let children = '';
+        for (let i = 0; i < this.length; i++) {
+            children += this[i].toString(level + 1);
+        }
+        return `${space}${this.type.toString()} [\n${children}${space}]\n`;
     }
 }
 
@@ -59,7 +77,6 @@ export interface LexerOptions {
 
 export type Matcher = (state: State) => void;
 export type Terminal = (input: Tokens) => Token | void;
-export type Reference = symbol | string | number;
 export type Layer<I, O> = (input: I) => O;
 export type ParsyOptions = LexerOptions & BuilderOptions;
 
