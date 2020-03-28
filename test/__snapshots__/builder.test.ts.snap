@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`parser #parser should not crash 1`] = `
+"root [
+  value [
+    array [
+      [35mleft_bracket[0m: [
+      value [
+        [35mnumber[0m: 10.5
+      ]
+      [35mcomma[0m: ,
+      value [
+        [35mboolean[0m: false
+      ]
+      [35mcomma[0m: ,
+      value [
+        [35mnull[0m: null
+      ]
+      [35mcomma[0m: ,
+      value [
+        array [
+          [35mleft_bracket[0m: [
+          [35mright_bracket[0m: ]
+        ]
+      ]
+      [35mcomma[0m: ,
+      value [
+        object [
+          [35mleft_brace[0m: {
+          property [
+            [35mstring[0m: \\"hello\\"
+            [35mcolon[0m: :
+            value [
+              [35mstring[0m: \\"world\\"
+            ]
+          ]
+          [35mright_brace[0m: }
+        ]
+      ]
+      [35mright_bracket[0m: ]
+    ]
+  ]
+]
+"
+`;

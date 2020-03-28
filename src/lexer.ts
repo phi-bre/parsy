@@ -1,107 +1,68 @@
-import {Layer, LexerOptions, Position, Terminal, Token, Tokens} from './index';
+import {Position} from './index';
+import {Token} from './token';
 
-export function lexer(options: LexerOptions): Layer<string, Tokens> {
-    const ignore = Symbol('ignore');
-    const terminals = [] as Terminal[];
+export type Terminal = (lexer: Lexer) => Token | void;
 
-    if (!options.terminals)
-        throw 'No terminals provided.';
+export class Lexer implements Iterable<Token> {
+    public readonly [Symbol.iterator] = () => this;
+    public cache: Token[];
+    public index: number;
+    public line: number;
+    public column: number;
 
-    if (options.ignore)
-        terminals.push(terminal(ignore, options.ignore));
+    constructor(public terminals: Terminal[], public input: string) {
+        this.index = this.line = this.column = 0;
+        this.cache = [];
+    }
 
-    for (const type in options.terminals) {
-        if (options.terminals.hasOwnProperty(type)) {
-            terminals.push(terminal(type, options.terminals[type]));
+    public reset({index, line, column}: Position) {
+        this.index = index;
+        this.line = line;
+        this.column = column;
+    }
+
+    get position() {
+        const {index, line, column} = this;
+        return {index, line, column};
+    }
+
+    get done() {
+        return this.index >= this.input.length;
+    }
+
+    get peek() {
+        if (this.index in this.cache)
+            return this.cache[this.index];
+
+        for (const terminal of this.terminals) {
+            const token = terminal(this);
+            if (token) {
+                return this.cache[this.index] = token;
+            }
         }
     }
 
-    return function (input: string) {
-        return new class {
-            public input: string = input;
-            public cache: Token[] = [];
-            public index: number = 0;
-            public line: number = 0;
-            public column: number = 0;
+    get next() {
+        const token = this.peek;
 
-            get peek() {
-                const {index, cache} = this;
-
-                if (index in cache) {
-                    return cache[index];
-                }
-
-                for (const terminal of terminals) {
-                    const token = terminal(this);
-                    if (token) {
-                        return cache[index] = token;
-                    }
-                }
+        if (!token) {
+            if (this.input.substr(this.index, 1) === '') {
+                throw 'Unexpected end of file.';
             }
-
-            get next() {
-                const token = this.peek;
-
-                if (!token) {
-                    throw 'Unexpected token: ' + input[this.index];
-                }
-
-                const newlines = token.value.split('\n');
-                this.index += token.value.length;
-                this.line += newlines.length - 1;
-                this.column = newlines[newlines.length - 1].length;
-
-                if (token.type === ignore) {
-                    return this.next;
-                }
-
-                return token;
-            }
-
-            get position() {
-                const {index, line, column} = this;
-                return {index, line, column};
-            }
-
-            get done() {
-                return this.index >= input.length;
-            }
-
-            reset({index, line, column}: Position) {
-                this.index = index;
-                this.line = line;
-                this.column = column;
-            }
-
-            * [Symbol.iterator]() {
-                while (!this.done) {
-                    yield this.next;
-                }
-            }
+            throw 'Unexpected token ' + this.input.substr(this.index, 1);
         }
-    }
-}
 
-/**
- * Used internally to create a terminal matcher.
- * @param type
- * @param value
- */
-function terminal(type: string | symbol, value: string | RegExp): Terminal {
-    if (typeof value === 'string') {
-        return function ({input, index, position}) {
-            if (input.startsWith(value, index)) {
-                return new Token(type, value, position);
-            }
+        let newlines = 0;
+        let last = 0;
+
+        while (last = token.value.indexOf('\n', last) + 1) {
+            newlines++;
         }
-    } else {
-        const pattern = new RegExp(value.source, 'y');
-        return function ({input, index, position}) {
-            pattern.lastIndex = index;
-            const match = pattern.exec(input);
-            if (match) {
-                return new Token(type, match[0], position);
-            }
-        };
+
+        this.column = this.index + last;
+        this.index += token.value.length;
+        this.line += newlines;
+
+        return token.ignore ? this.next : token;
     }
 }

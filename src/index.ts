@@ -1,7 +1,13 @@
-import {indent} from './utils';
+import {Branch} from './branch';
+import {Lexer, Terminal} from './lexer';
+import {Parser, Rule, RuleStore} from './parser';
+import {Token} from './token';
 
-export * from './builder';
+export * from './declarations';
+export * from './parser';
 export * from './lexer';
+export * from './branch';
+export * from './token';
 
 export interface Position {
     index: number;
@@ -9,100 +15,72 @@ export interface Position {
     column: number;
 }
 
-export interface Tokens extends Iterable<Token> {
-    input: string;
-    cache: Token[];
-    index: number;
-    line: number;
-    column: number;
-    readonly done: boolean;
-    readonly peek: Token | undefined;
-    readonly next: Token;
-    readonly position: Position;
+export function parsy(config) {
+    const rules: RuleStore = {};
+    const terminals: Terminal[] = [];
 
-    reset(position: Position);
+    if (config.ignore) {
+        const symbol = Symbol('ignore');
+        rules[symbol as unknown as string] = advance(symbol as unknown as string);
+        const terminal = typeof config.terminals[symbol] === 'string' ? string : regex;
+        terminals.push(terminal(symbol, config.ignore, true));
+    }
+
+    for (const identifier in config.terminals) if (config.terminals.hasOwnProperty(identifier)) {
+        rules[identifier] = advance(identifier);
+        const terminal = typeof config.terminals[identifier] === 'string' ? string : regex;
+        terminals.push(terminal(identifier, config.terminals[identifier]));
+    }
+
+    for (const identifier in config.rules) if (config.rules.hasOwnProperty(identifier)) {
+        if (identifier in rules)
+            throw 'Terminals and rules cannot have the same identifier: ' + identifier;
+        rules[identifier] = rule(identifier, config.rules[identifier]);
+    }
+
+    return function (input: string) {
+        const lexer = new Lexer(terminals, input);
+        const parser = new Parser(config.start, rules, lexer);
+        return parser.tree;
+    }
 }
 
-export class Token {
-    constructor(
-        public type: string | number | symbol,
-        public value: string,
-        public position: Position,
-    ) {
-    }
-
-    toString(level: number = 0) {
-        return indent(level) + this.type.toString() + ' { ' + this.value + ' }\n';
+function advance(identifier: string): Rule {
+    return function ({lexer, node}) {
+        const token = lexer.next;
+        if (token.type !== identifier)
+            throw 'Unexpected token: ' + token.type.toString() + '. \nExpected: ' + identifier;
+        node!.push(token);
     }
 }
 
-export class Node extends Array<Node | Token> {
-    constructor(
-        public type: string | number | symbol,
-        public parent?: Node,
-        ...children: (Node | Token)[]
-    ) {
-        super(...children);
-    }
-
-    toString(level: number = 0): string {
-        const space = indent(level);
-        let children = '';
-        for (let i = 0; i < this.length; i++) {
-            children += this[i].toString(level + 1);
+function rule(identifier: string, rule: Rule): Rule {
+    return function (parser) {
+        try {
+            parser.node = new Branch(identifier, parser.node);
+            rule(parser);
+            parser.node!.parent!.push(parser.node);
+        } finally {
+            parser.node = parser.node!.parent;
         }
-        return `${space}${this.type.toString()} [\n${children}${space}]\n`;
     }
 }
 
-export interface BuilderOptions {
-    start: string;
-    rules: {
-        [rule: string]: symbol;
-    };
-    scopes: {
-        [scope: string]: symbol;
-    };
-    terminals: {
-        [terminal: string]: string | RegExp;
-    };
+function string(type: string | symbol, value: string, ignore?: boolean): Terminal {
+    return function ({input, index, position}: Lexer) {
+        if (input.startsWith(value, index)) {
+            return new Token(type, value, position, ignore);
+        }
+    }
 }
 
-export interface LexerOptions {
-    ignore?: string | RegExp;
-    terminals: {
-        [terminal: string]: string | RegExp;
-    };
-}
-
-export type Matcher = (state: State) => void;
-export type Terminal = (input: Tokens) => Token | void;
-export type Layer<I, O> = (input: I) => O;
-export type ParsyOptions = LexerOptions & BuilderOptions;
-
-export interface State {
-    tokens: Tokens;
-    node: Node;
-    matchers: {
-        [matcher: string]: Matcher;
-    };
-}
-
-export interface Parsy<R> {
-    (input: string): R;
-    use<T>(layer: (options: ParsyOptions) => Layer<R, T>): Parsy<T>;
-}
-
-export function parsy(options: ParsyOptions): Parsy<string> {
-    let pipe = i => i;
-    const instance = (input: string) => pipe(input);
-
-    instance.use = <I, O>(layer: (config) => Layer<I, O>) => {
-        const applied = layer(options);
-        const previous = pipe;
-        pipe = (input: I) => applied(previous(input));
-        return instance;
-    };
-
-    return instance;
+function regex(type: string | symbol, value: RegExp, ignore?: boolean): Terminal {
+    const pattern = new RegExp(value.source, 'y');
+    return function ({input, index, position}: Lexer) {
+        pattern.lastIndex = index;
+        const match = pattern.exec(input);
+        if (match) {
+            return new Token(type, match[0], position, ignore);
+        }
+    }
 }

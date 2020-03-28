@@ -1,8 +1,8 @@
 import {alternation, optional, parsy, sequence, star} from '../src';
 
-describe('#parsy', () => {
+describe('parser', () => {
 
-    const config = {
+    const instance = parsy({
         ignore: /[ \n\r]+/,
         terminals: {
             left_brace: '{',
@@ -20,19 +20,16 @@ describe('#parsy', () => {
         rules: {
             value: alternation('null', 'number', 'boolean', 'string', 'object', 'array'),
             property: sequence('string', 'colon', 'value'),
-        },
-        scopes: {
             object: sequence('left_brace', optional('property', star('comma', 'property')), 'right_brace'),
             array: sequence('left_bracket', optional('value', star('comma', 'value')), 'right_bracket'),
         },
-    };
+    });
 
-    const instance = parsy(config)
-        .use(lexer)
-        .use(parser);
+    describe('#parser', () => {
+        const input = '[10.5, false, null, [], { "hello": "world" }]';
 
-
-    it('should not crash', () => {
-        expect(instance('[10, false, {"test": [null]}]')).toBeTruthy();
+        it('should not crash', () => {
+            expect(instance(input).toString()).toMatchSnapshot();
+        });
     });
 });
