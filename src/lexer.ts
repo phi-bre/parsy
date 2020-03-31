@@ -1,7 +1,7 @@
+import {TokenError} from './errors';
 import {Position} from './index';
+import {Terminal} from './terminal';
 import {Token} from './token';
-
-export type Terminal = (lexer: Lexer) => Token | void;
 
 export class Lexer implements Iterable<Token> {
     public readonly [Symbol.iterator] = () => this;
@@ -35,7 +35,7 @@ export class Lexer implements Iterable<Token> {
             return this.cache[this.index];
 
         for (const terminal of this.terminals) {
-            const token = terminal(this);
+            const token = terminal.lex(this);
             if (token) {
                 return this.cache[this.index] = token;
             }
@@ -44,17 +44,12 @@ export class Lexer implements Iterable<Token> {
 
     get next() {
         const token = this.peek;
-
         if (!token) {
-            if (this.input.substr(this.index, 1) === '') {
-                throw 'Unexpected end of file.';
-            }
-            throw 'Unexpected token ' + this.input.substr(this.index, 1);
+            throw new TokenError(this.input, this.position);
         }
 
         let newlines = 0;
         let last = 0;
-
         while (last = token.value.indexOf('\n', last) + 1) {
             newlines++;
         }

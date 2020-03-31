@@ -13,9 +13,7 @@ export class Token {
 
     toString(level: number = 0) {
         return indent(level)
-            + '\u001b[35m'
             + this.type.toString()
-            + '\u001b[0m'
             + ': '
             + this.value + '\n';
     }

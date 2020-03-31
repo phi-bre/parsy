@@ -1,27 +1,38 @@
-import {alternation, optional, parsy, sequence, star} from '../src';
+import {alternation, optional, parsy, sequence, star, string} from '../src';
 
 describe('parser', () => {
 
     const instance = parsy({
-        ignore: /[ \n\r]+/,
+        grammar: 'PARSY',
+        version: '0.0.1',
+        start: 'statement',
         terminals: {
-            left_brace: '{',
-            right_brace: '}',
-            left_bracket: '[',
-            right_bracket: ']',
-            comma: ',',
-            colon: ':',
-            null: 'null',
-            number: /(\d+)?\.?\d+/,
-            boolean: /true|false/,
-            string: /"(?:[^"\\]|\\.)*"/,
+            integer: /[0-9]+/,
+            string: /'(?:[^'\\]|\\.)*'/,
+            identifier: /[A-z][A-z0-9]*/,
+            regex: /\/(?:[^\/\\]|\\.)*\//,
+            eol: /[\n;]/,
         },
-        start: 'value',
         rules: {
-            value: alternation('null', 'number', 'boolean', 'string', 'object', 'array'),
-            property: sequence('string', 'colon', 'value'),
-            object: sequence('left_brace', optional('property', star('comma', 'property')), 'right_brace'),
-            array: sequence('left_bracket', optional('value', star('comma', 'value')), 'right_bracket'),
+            statement: star(alternation('grammar', 'version', 'terminal', 'rule', 'start', 'ignore')),
+            grammar: sequence(string('grammar'), 'identifier', 'eol'),
+            version: sequence(string('version'), 'integer', optional(string('.'), 'integer', optional(string('.'), 'integer')), 'eol'),
+            start: sequence(string('start'), 'identifier', 'eol'),
+            ignore: sequence(string('ignore'), 'regex', 'eol'),
+            terminal: sequence(string('terminal'), 'identifier', 'regex', 'eol'),
+            rule: sequence(string('rule'), 'identifier', string('('), 'group', string(')'), 'eol'),
+            // modifier: alternation('?', '+', '*'),
+            // group: sequence(
+            //     string('('),
+            //     star(
+            //         star('group'),
+            //         string('|'),
+            //         'group'
+            //     ),
+            //     string(')'),
+            //     star('modifier')
+            // ),
+            // match: alternation('identifier', 'regex', 'string'), // TODO
         },
     });
 

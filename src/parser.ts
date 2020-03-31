@@ -1,32 +1,19 @@
-import {Branch, Lexer} from './index';
-
-export type Rule = (parser: Parser) => void | boolean;
-export type RuleStore = {
-    [matcher: string]: Rule;
-};
+import {Declaration} from './declaration';
+import {Lexer, Node} from './index';
 
 export class Parser {
-    public node?: Branch;
+    public node?: Node;
 
     constructor(
-        public start: Rule,
-        public rules: RuleStore,
+        public start: Declaration,
         public lexer: Lexer
     ) {
     }
 
     get tree() {
-        const root = new Branch('root');
+        const root = new Node('root');
         this.node = root;
-        this.resolve(this.start);
+        this.start.parse(this);
         return root;
-    }
-
-    public resolve(reference: string | Rule) {
-        if (typeof reference === 'function')
-            return reference(this);
-        if (this.rules[reference])
-            return this.rules[reference](this);
-        throw 'Cannot find reference: ' + reference;
     }
 }

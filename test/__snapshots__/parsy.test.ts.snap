@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`#parsy should not crash 1`] = `
+"root [
+  value [
+    array [
+      left_bracket: [
+      value [
+        number: 10
+      ]
+      comma: ,
+      value [
+        boolean: false
+      ]
+      comma: ,
+      value [
+        object [
+          left_brace: {
+          property [
+            string: \\"test\\"
+            colon: :
+            value [
+              array [
+                left_bracket: [
+                value [
+                  null: null
+                ]
+                right_bracket: ]
+              ]
+            ]
+          ]
+          right_brace: }
+        ]
+      ]
+      right_bracket: ]
+    ]
+  ]
+]
+"
+`;

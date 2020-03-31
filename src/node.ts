@@ -1,9 +1,9 @@
 import {Token} from './token';
 import {indent} from './utils';
 
-export class Branch extends Array<Branch | Token> {
+export class Node extends Array<Node | Token> {
 
-    constructor(public type: string | number | symbol, public parent?: Branch) {
+    constructor(public type: string | number | symbol, public parent?: Node) {
         super();
     }
 
