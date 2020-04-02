@@ -6,7 +6,6 @@ export class Token {
     constructor(
         public type: string | number | symbol,
         public value: string,
-        public position: Position,
         public ignore: boolean = false
     ) {
     }
