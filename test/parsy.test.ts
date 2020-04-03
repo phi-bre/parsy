@@ -1,5 +1,3 @@
-import {parsy} from '../src/parsy';
-
 // describe('#parsy', () => {
 //
 //     const instance = parsy(({alternation, terminal, sequence, alias}) => {
@@ -15,91 +13,90 @@ import {parsy} from '../src/parsy';
 
 describe('#parsy', () => {
     const type = Symbol('type');
-    const alias = (string: string) => ({[type]: string});
 
-    const whitespace = alias('whitespace');
-    const expression = alias('expression');
-    const integer = alias('integer');
-    const value = alias('value');
-    const addition = alias('addition');
-    const multiplication = alias('multiplication');
+    const ws = {};
+    const expression = {};
+    const int = {};
+    const value = {};
+    const plus = {};
+    const star = {};
 
-    whitespace[' '] = whitespace;
-    whitespace['\n'] = whitespace;
-    whitespace['\t'] = whitespace;
+    ws[' '] = ws['\n'] = ws['\t'] = ws;
+    int[0] = int[1] = int[2] = int[3] = int[4] = int[5] = int[6] = int[7] = int[8] = int[9] = int;
+    expression['('] = expression[')'] = plus['+'] = star['*'] = null;
 
-    integer['0'] = integer;
-    integer['1'] = integer;
-    integer['2'] = integer;
-    integer['3'] = integer;
-    integer['4'] = integer;
-    integer['5'] = integer;
-    integer['6'] = integer;
-    integer['7'] = integer;
-    integer['8'] = integer;
-    integer['9'] = integer;
-
-    expression['('] = value;
-    expression[')'] = null;
-
-    addition['+'] = value;
-
-    multiplication['*'] = value;
-
-    Object.assign(value, integer);
+    Object.assign(value, int);
     Object.assign(value, expression);
-    Object.assign(value, addition);
-    Object.assign(value, multiplication);
-    // Object.assign(addition, value);
-    // Object.assign(multiplication, value);
+    Object.assign(value, plus);
+    Object.assign(value, star);
+
+    ws[type] = 'whitespace';
+    expression[type] = 'expression';
+    int[type] = 'integer';
+    value[type] = 'value';
+    plus[type] = 'plus';
+    star[type] = 'star';
 
     console.log(
         'value: ' + Object.keys(value).join(' ') + '\n' +
         'expression: ' + Object.keys(expression).join(' ') + '\n' +
-        'integer: ' + Object.keys(integer).join(' ') + '\n' +
-        'addition: ' + Object.keys(addition).join(' ') + '\n' +
-        'multiplication: ' + Object.keys(multiplication).join(' ')
+        'integer: ' + Object.keys(int).join(' ') + '\n' +
+        'addition: ' + Object.keys(plus).join(' ') + '\n' +
+        'multiplication: ' + Object.keys(star).join(' ')
     );
 
-    console.time('abc');
+    const input = new Array(5_000_000).fill(1).join('');
 
-    const input = '100000000000000000000000000000000000000000000001239812380+10';
+    console.time('regex');
+    const [group] = /^[0-9]+/.exec(input) || [];
+    console.timeEnd('regex');
+
+    console.time('while');
+    let test = '', length = 0;
+    while (length < input.length) {
+        test += input[length++];
+    }
+    console.timeEnd('while');
+
+    console.time('lookup');
     let index = 0;
-    const stack: any[] = [value];
+    let string = '';
     let tree: any = [];
-    tree.type = value[type];
+    tree.type = value; // start
 
     while (index < input.length) {
-        const char = input[index];
-        const [current] = stack;
-        const next = current[char];
-
-        if (!next) {
-            console.log('close scope: ' + current[type] + ' "' + char + '"@' + index);
-            if (!stack.shift()) {
-                throw 'unexpected token: "' + char + '"@' + index;
-            }
-            tree = tree.parent;
+        switch (tree.type[input[index]]) {
+            case undefined:
+            case null:
+                // console.log('close scope: ' + tree.type + ' "' + input[index] + '" @ ' + index);
+                tree.push(string);
+                if (tree = tree.parent) continue;
+                else throw 'unexpected token: "' + input[index] + '" @ ' + index;
+            default:
+                // console.log('open scope: ' + next[type] + ' "' + input[index] + '" @ ' + index);
+                const node: any = [];
+                node.type = tree.type[input[index]];
+                node.parent = tree;
+                tree.push(node);
+                tree = node;
+            case tree.type:
+                // console.log('continue scope: ' + next[type] + ' "' + input[index] + '" @ ' + index);
+                string += input[index];
+                index++;
         }
-
-        else if (next === current) {
-            console.log('open scope: ' + next[type] + ' "' + char + '"@' + index);
-            const temp: any = [];
-            temp.type = current[type];
-            temp.parent = tree;
-            tree = temp;
-            stack.unshift(next);
-        }
-
-        // console.log('continue scope: ' + next[type] + ' "' + char + '"@' + index);
-        tree.push(char);
-        index++;
     }
 
-    console.timeEnd('abc');
+    tree.push(string);
+    tree = tree.parent;
+
+    if (tree.parent) {
+        throw 'unclosed scope: ' + tree.type[type];
+    }
+    console.timeEnd('lookup');
 
     it('should not crash', () => {
-        console.log(tree);
+        // console.log(tree[0][0]);
+        // console.log(group);
         expect(true).toBeTruthy();
     });
 });
