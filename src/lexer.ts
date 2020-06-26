@@ -3,6 +3,17 @@ import {Position} from './index';
 import {Terminal} from './terminal';
 import {Token} from './token';
 
+export function lexer(config: { [name: string]: RegExp }) {
+    const source = Object.keys(config).map(name => `(?<${name}>${config[name].source}`);
+    const pattern = new RegExp(`^${source.join('')}$`);
+    return function *(input: string) {
+        const matches = input.matchAll(pattern);
+        for (const match of matches) {
+            yield new Token();
+        }
+    }
+}
+
 export class Lexer implements Iterable<Token> {
     public readonly [Symbol.iterator] = () => this;
     public cache: Token[];

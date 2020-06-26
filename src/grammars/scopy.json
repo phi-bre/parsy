@@ -1,0 +1,12 @@
+{
+  "start": "value",
+  "ignore": "[ \t\n\r]+",
+  "terminals": {
+    "label": "[A-Za-z0-9]+",
+    "open": "{",
+    "close": "}"
+  },
+  "rules": {
+    "value": ["label", "open", "*value", "close"]
+  }
+}

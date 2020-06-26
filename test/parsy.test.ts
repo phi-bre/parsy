@@ -1,116 +1,47 @@
-// describe('#parsy', () => {
-//
-//     const instance = parsy(({alternation, terminal, sequence, alias}) => {
-//         alias('terminal', terminal(/A/));
-//         alias('another', sequence('rule'));
-//         alias('rule', alternation('terminal', 'terminal', terminal('B')));
-//     });
-//
-//     it('should not crash', () => {
-//         expect(instance('AAA', 'rule').toString()).toMatchSnapshot();
-//     });
-// });
+import {parsy} from '../src';
 
 describe('#parsy', () => {
-    const type = Symbol('type');
-
-    const ws = {};
-    const expression = {};
-    const int = {};
-    const value = {};
-    const plus = {};
-    const star = {};
-
-    ws[' '] = ws['\n'] = ws['\t'] = ws;
-    int[0] = int[1] = int[2] = int[3] = int[4] = int[5] = int[6] = int[7] = int[8] = int[9] = int;
-    expression['('] = expression[')'] = plus['+'] = star['*'] = null;
-
-    Object.assign(value, int);
-    Object.assign(value, expression);
-    Object.assign(value, plus);
-    Object.assign(value, star);
-
-    ws[type] = 'whitespace';
-    expression[type] = 'expression';
-    int[type] = 'integer';
-    value[type] = 'value';
-    plus[type] = 'plus';
-    star[type] = 'star';
-
-    console.log(
-        'value: ' + Object.keys(value).join(' ') + '\n' +
-        'expression: ' + Object.keys(expression).join(' ') + '\n' +
-        'integer: ' + Object.keys(int).join(' ') + '\n' +
-        'addition: ' + Object.keys(plus).join(' ') + '\n' +
-        'multiplication: ' + Object.keys(star).join(' ')
-    );
-
-    const input = new Array(10_000_000).fill(1).join('');
-
-    console.time('regex');
-    const [group] = /^[0-9]+/.exec(input) || [];
-    console.timeEnd('regex');
-
-    console.time('while');
-    const pattern = /^[0-9]+/;
-    let test = '', length = 0;
-    while (length++ < input.length) {
-        // pattern.exec(input.substring(0, length));
-    }
-    console.timeEnd('while');
-
-    console.time('lookup');
-    let index = 0, last = 0;
-    let tree: any = [];
-    tree.type = value; // start
-
-    while (index < input.length) {
-        switch (tree.type[input[index]]) {
-            case undefined:
-            case null:
-                // console.log('close scope: ' + tree.type + ' "' + input[index] + '" @ ' + index);
-                tree.push(input.substring(last, index));
-                if (tree = tree.parent) continue;
-                else throw 'unexpected token: "' + input[index] + '" @ ' + index;
-            default:
-                // console.log('open scope: ' + next[type] + ' "' + input[index] + '" @ ' + index);
-                const node: any = [];
-                node.type = tree.type[input[index]];
-                node.parent = tree;
-                tree.push(node);
-                tree = node;
-                last = index;
-            case tree.type:
-                // console.log('continue scope: ' + next[type] + ' "' + input[index] + '" @ ' + index);
-                index++;
+    const parse = parsy({
+        start: 'value',
+        ignore: '[ \t\n\r]+',
+        terminals: {
+            label: '[A-Za-z0-9]+',
+            open: '{',
+            close: '}'
+        },
+        rules: {
+            value: ['label', 'open', '*value', 'close']
         }
-    }
+    });
+    const input = `
+        grammar {
+            test {
+        
+            }
+            abc {}
+        }
+    `;
 
-    tree.push(input.substring(last, index));
-    tree = tree.parent;
-
-    if (tree.parent) {
-        throw 'unclosed scope: ' + tree.type[type];
-    }
-    console.timeEnd('lookup');
-
-    it('should not crash', () => {
-        // console.log(tree[0][0]);
-        // console.log(group);
-        expect(true).toBeTruthy();
+    it('should parse correct structure', function () {
+        expect(parse(input)).toEqual({
+            grammar: {
+                test: {},
+                abc: {},
+            }
+        });
     });
 });
 
 describe('#two', function () {
     // object: [A-Za-z0-9]+ '{' object* '}'
     const input = `
-            grammar {
-                test {
-            
-                }
-                abc {}
+        grammar {
+            test {
+        
             }
-        `;
+            abc {}
+        }
+    `;
 
     const sequence = (...rules) => [seq, ...rules];
     const alternation = (...rules) => [alt, ...rules];
@@ -142,8 +73,23 @@ describe('#two', function () {
     // sc: '}'
     // obj_rec: object obj_rec
 
-    const object: any[] = [opt, /^[ \n\t]*([A-Za-z0-9]+)[ \n\t]*({)/g, /^[ \n\t]*(})/g];
-    object.push(object);
+    let object, a, b, c;
+
+    a = /^[ \n\t]*([A-Za-z0-9]+)[ \n\t]*({)/g;
+    c = /^[ \n\t]*(})/g;
+
+    b = (i: string) => object(i) || c(i);
+    object = (i: string) => open('object') && b(i);
+
+    let tree = [];
+
+    function open(label: string) {
+
+    }
+
+    function close(label: string) {
+
+    }
 
     let index = 0;
     let tree = [] as any;
@@ -181,20 +127,4 @@ describe('#two', function () {
     it('should ', function () {
         expect(true).toBeTruthy();
     });
-
-    // const id = [ter, /^[A-Za-z0-9]+/];
-    // let obj = [seq];
-    // const bo = [ter, /^{/];
-    // const bc = [ter, /^}/];
-    // const id_bo = [seq, id, bo];
-    // const id_bo_obj = [seq, id_bo];
-    // const obj_opt = [alt, obj, null];
-    // const obj_rec = [seq, obj, obj];
-    // // obj.push(seq, id_bo_obj);
-    //
-    // let tree: Node = [] as any;
-    // tree.label = value; // start
-    // for (let i = 0; i < input.length; i++) {
-    //
-    // }
 });
