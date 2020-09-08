@@ -1,120 +1,152 @@
-import {Node} from './node';
+export class ParsyPosition {
+    public row: number;
+    public column: number;
+    public index: number;
 
-type Reference = string | symbol;
-
-interface Context {
-    input: string;
-    index: number;
-    node: Node;
+    constructor(context: ParsyContext) {
+        this.row = context.row;
+        this.column = context.column;
+        this.index = context.index;
+    }
 }
 
-class ParsyNode {
+export class ParsyToken {
     constructor(
-        public type: string,
         public value: string,
-        public parent?: ParsyNode,
+        public start: ParsyPosition,
+        public end: ParsyPosition,
+        public types: string[] = [],
     ) {
     }
 }
 
-// class ForkParser {
-//     constructor(
-//         public left: RegExp,
-//         public right: RegExp,
-//     ) {
-//
-//     }
-//
-//     public parse(input: string) {
-//         if () {
-//
-//         }
-//     }
-// }
-
-class Rule {
-    public left: RegExp;
-    public right: RegExp;
-    public type: string;
-}
-
-class Parsy {
-    private current: string;
-    private stack: string[];
-    private index: number;
-
+export class ParsyNode {
     constructor(
-        public start: string,
-        public rules: Rule[],
+        public parent?: ParsyNode,
+        public children: Array<ParsyToken | ParsyNode> = [],
+        public types: string[] = [],
     ) {
     }
 
-    private open() {
-
+    get start() {
+        return this.children[0].start;
     }
 
-    private close() {
-
-    }
-
-    public parse(input: string) {
-        this.current = this.start;
-        this.stack = [];
-        this.index = 0;
-
-        while (true) {
-            if (this.index <= input.length && this.stack.length) {
-                throw 'Unexpected end of input';
-            }
-
-
-        }
-
-        return this.stack[0];
+    get end() {
+        return this.children[this.children.length - 1].end;
     }
 }
 
-export function parsy(config) {
-    let stack = [];
-    let index = 0;
-    let current = config.start;
+export abstract class ParsyParser {
+    public abstract exec(context: ParsyContext): ParsyContext | null;
+}
 
-    function open() {
+export class TerminalParser extends ParsyParser {
+    public expression: RegExp;
 
+    constructor(expression: RegExp) {
+        super();
+        this.expression = new RegExp(expression.source, 'y');
     }
 
-    function close() {
+    public exec(context: ParsyContext): ParsyContext | null {
+        this.expression.lastIndex = context.index;
+        const matches = this.expression.exec(context.input);
+        if (matches === null) return null;
+        const value = matches[0];
+        const start = new ParsyPosition(context);
+        context.advance(value);
+        const end = new ParsyPosition(context);
+        const token = new ParsyToken(value, start, end);
+        context.node.children.push(token);
+        return context;
+    }
+}
 
+export class AliasParser extends ParsyParser {
+    constructor(public parser: ParsyParser, public type: string) {
+        super();
     }
 
-    let index = 0;
-    let tree = [] as any;
-    tree.type = object;
-    do {
-        const [op, open, close, type] = tree.type;
-        open.lastIndex = index;
-        const match = open.exec(input);
-        if (match) {
-            tree.push(...match.slice(1));
-            console.log('open: ' + match[1]);
-            const node = [] as any;
-            node.type = type;
-            node.parent = tree;
-            tree = node;
-            index += match[0].length;
-        } else {
-            close.lastIndex = index;
-            const match = close.exec(input);
-            if (!match) throw 'blub';
-            console.log('close: ' + match[1]);
-            index += match[0].length;
-            tree.push(...match.slice(1));
-            tree.parent.push(tree);
-            tree = tree.parent;
+    public exec(context: ParsyContext): ParsyContext | null {
+        this.parser.exec(context);
+        context.node.types.push(this.type);
+        return context;
+    }
+}
+
+export class EmptyParser extends ParsyParser {
+    public exec(context: ParsyContext): ParsyContext {
+        return context;
+    }
+}
+
+export abstract class BinaryParser extends ParsyParser {
+    protected left!: ParsyParser;
+    protected right!: ParsyParser;
+
+    constructor(left?: ParsyParser, right?: ParsyParser) {
+        super();
+        if (left && right) {
+            this.setup(left, right);
         }
-    } while (tree.parent && index < input.length);
+    }
 
-    return function (input: string) {
+    public setup(left: ParsyParser, right: ParsyParser): this {
+        this.left = left;
+        this.right = right;
+        return this;
+    }
+}
 
+export class AndParser extends BinaryParser {
+    public exec(context: ParsyContext): ParsyContext | null {
+        return this.left.exec(context) && this.right.exec(context);
+    }
+}
+
+export class OrParser extends BinaryParser {
+    public exec(context: ParsyContext): ParsyContext | null {
+        return this.left.exec(context) || this.right.exec(context);
+    }
+}
+
+export class ParsyContext {
+    public stack: Array<ParsyPosition>;
+    public node: ParsyNode;
+    public input: string;
+    public index: number;
+    public column: number;
+    public row: number;
+
+    constructor(input: string, index: number = 0) {
+        this.input = input;
+        this.index = index;
+        this.column = 0;
+        this.row = 0;
+        this.node = new ParsyNode();
+        this.stack = [];
+    }
+
+    public advance(input: string) {
+        this.index += input.length;
+        this.row = (input.match(/\n/g) || '').length + 1;
+        this.column = input.length - input.lastIndexOf('\n');
+        this.stack.push(new ParsyPosition(this));
+    }
+
+    public restore(position: ParsyPosition = this.stack.pop()!) {
+        this.index = position.index;
+
+    }
+}
+
+export class Parsy {
+    constructor(public parser: ParsyParser) {
+    }
+
+    exec(input: string) {
+        const context = new ParsyContext(input);
+        return this.parser.exec(context);
     }
 }

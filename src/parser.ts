@@ -6,7 +6,7 @@ export class Parser {
 
     constructor(
         public start: Declaration,
-        public lexer: Lexer
+        public lexer: Lexer,
     ) {
     }
 

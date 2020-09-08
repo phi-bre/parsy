@@ -1,0 +1,11 @@
+linear number /[0-9]+/
+linear variable /[a-zA-Z_]+/
+linear line /[+\-]/
+linear point /[*/]/
+
+rule expression [ term ( expression addition term ) ( addition term ) ]
+rule term [ factor ( term multiplication factor ) ]
+rule factor [ primary ( factor '^' primary ) ]
+rule primary [ number variable ( '(' expression ')' ) ]
+rule line [ '+' '-' ]
+rule point [ '*' '/' ]

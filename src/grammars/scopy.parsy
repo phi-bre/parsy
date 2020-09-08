@@ -1,11 +1,7 @@
-start value
+terminal whitespace /[ \t\n\r]+/
+terminal label /[A-Za-z0-9]+/
+terminal open /{/
+terminal close /}/
 
-terminals {
-    label: /[A-Za-z0-9]+/
-    open: /{/
-    close: /}/
-}
-
-rules {
-    value [label open *value close]
-}
+rule start [ whitespace? value whitespace? ]
+rule value [ label whitespace? open whitespace? ( value whitespace? )* close ]
