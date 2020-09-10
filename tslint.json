@@ -16,6 +16,9 @@
     "prefer-const": true,
     "quotemark": {
       "options": "single"
-    }
+    },
+    "member-access": true,
+    "space-within-parens": true,
+    "import-spacing": true
   }
 }

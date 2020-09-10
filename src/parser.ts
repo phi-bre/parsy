@@ -1,19 +1,14 @@
-import {Declaration} from './declaration';
-import {Lexer, Node} from './index';
+import {ParsyContext, ParsyParser} from '.';
 
-export class Parser {
-    public node?: Node;
-
-    constructor(
-        public start: Declaration,
-        public lexer: Lexer,
-    ) {
+export class Parsy {
+    constructor(public parser: ParsyParser) {
     }
 
-    get tree() {
-        const root = new Node('root');
-        this.node = root;
-        this.start.parse(this);
-        return root;
+    public parse(input: string) {
+        const context = new ParsyContext(input);
+        const result = this.parser.parse(context);
+        if (result) {
+            return result.token.children;
+        }
     }
 }

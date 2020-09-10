@@ -1,10 +1,10 @@
-terminal label /[A-Za-z0-9]+/
-terminal pattern /\/(?:[^\/\\]|\\.)*\//
-terminal modifier /[*+?]/
-
-rule start [ terminal rule ]+
-rule terminal ( /terminal/ label pattern )
-rule rule ( /rule/ label expression )
-rule sequence ( /\(/ expression+ /\)/ )
-rule alternation ( /\[/ expression+ /\]/ )
-rule expression ( [ alternation sequence pattern label ] modifier? )
+start: rule+
+identifier: [A-Za-z0-9]+
+string: ( ['] { '\\\'' . }* ['] )
+pattern: ( '[' .* ']' )
+modifier: [*+?]
+any: '.'
+rule: ( identifier ':' expression )
+sequence: ( '(' expression+ ')' )
+alternation: ( '{' expression+ '}' )
+expression: ( { sequence alternation string any identifier } modifier? )

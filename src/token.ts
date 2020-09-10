@@ -1,19 +1,12 @@
-import {Position} from './index';
-import {indent} from './utils';
+export class ParsyToken {
+    public value: string;
+    public children: ParsyToken[];
+    public from: number;
+    public to?: number;
 
-export class Token {
-
-    constructor(
-        public type: string | number | symbol,
-        public value: string,
-        public ignore: boolean = false
-    ) {
-    }
-
-    toString(level: number = 0) {
-        return indent(level)
-            + this.type.toString()
-            + ': '
-            + this.value + '\n';
+    constructor(index: number, public parent?: ParsyToken, public type?: string) {
+        this.children = [];
+        this.value = '';
+        this.from = index;
     }
 }

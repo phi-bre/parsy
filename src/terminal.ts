@@ -1,47 +1,19 @@
-import {Declaration} from './declaration';
-import {SyntaxError} from './errors';
-import {Lexer} from './lexer';
-import {Parser} from './parser';
-import {Token} from './token';
+import {ParsyContext, ParsyParser} from '.';
 
-export abstract class Terminal extends Declaration {
-    public abstract lex(lexer: Lexer): Token | undefined | void;
+export class TerminalParser extends ParsyParser {
+    public pattern: { [literal: string]: true | undefined }
 
-    public parse({node, lexer}: Parser) {
-        const token = lexer.next;
-        if (token.type !== this.type) {
-            throw new SyntaxError(lexer.input, token, this.type.toString());
-        }
-        node!.push(token);
-        return node;
-    }
-}
-
-export class StringTerminal extends Terminal {
-    constructor(type: string | symbol, public value: string) {
-        super(type);
-    }
-
-    public lex({input, index, position}: Lexer) {
-        if (input.startsWith(this.value, index)) {
-            return new Token(this.type, this.value, position);
+    constructor(...pattern: string[]) {
+        super();
+        this.pattern = {};
+        for (const literal of pattern) {
+            this.pattern[literal] = true;
         }
     }
-}
 
-export class RegexTerminal extends Terminal {
-    public pattern: RegExp;
-
-    constructor(type: string | symbol, public value: RegExp) {
-        super(type);
-        this.pattern = new RegExp(value.source, 'y');
-    }
-
-    public lex({input, index, position}: Lexer) {
-        this.pattern.lastIndex = index;
-        const match = this.pattern.exec(input);
-        if (match) {
-            return new Token(this.type, match[0], position);
+    public parse(context: ParsyContext): ParsyContext | undefined {
+        if (this.pattern[context.input[context.index]]) {
+            return context.advance(1);
         }
     }
 }
