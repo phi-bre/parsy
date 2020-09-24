@@ -18,9 +18,9 @@ export class RuleParser extends ParsyParser {
         const temp = this.parser.parse(context);
         if (index === context.index) {
             context.discard();
+            return temp;
         } else {
-            context.close(this.type);
+            return context.close(this.type);
         }
-        return temp;
     }
 }

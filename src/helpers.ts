@@ -1,4 +1,4 @@
-import {RuleParser, AndParser, OrParser, ParsyParser, TerminalParser} from '.';
+import {AndParser, OrParser, ParsyParser, ParsyToken, RuleParser, TerminalParser, TransformParser} from '.';
 
 /**
  * Matches the empty string.
@@ -9,7 +9,7 @@ export const empty = new ParsyParser();
  * Matches a range of characters.
  */
 export function terminal(...pattern: string[]) {
-    return new TerminalParser(...pattern);
+    return new TerminalParser().set(...pattern);
 }
 
 /**
@@ -39,8 +39,8 @@ export function optional(parser: ParsyParser) {
 }
 
 /**
- * Repeats matching the supplied rule.
- * Recovers if the sequence never matches.
+ * Repeats matching the supplied rule for as long as the input allows for it.
+ * Must match at least once.
  */
 export function repeated(parser: ParsyParser) {
     const self = new AndParser();
@@ -52,7 +52,7 @@ export function repeated(parser: ParsyParser) {
  * All the rules provided need to match.
  */
 export function sequence(...parsers: ParsyParser[]) {
-    const reducer = (parser, rule) => new AndParser().set(rule, parser || empty);
+    const reducer = (parser, rule) => new AndParser().set(rule, parser);
     return parsers.reduceRight(reducer);
 }
 
@@ -61,6 +61,11 @@ export function sequence(...parsers: ParsyParser[]) {
  * At least one of the rules has to match.
  */
 export function alternation(...parsers: ParsyParser[]) {
-    const reducer = (parser, rule) => new OrParser().set(rule, parser || empty);
-    return parsers.reduceRight(reducer, new OrParser());
+    const start = new OrParser().set(parsers[parsers.length - 2], parsers[parsers.length - 1]);
+    const reducer = (parser, rule) => new OrParser().set(rule, parser);
+    return parsers.slice(0, -2).reduceRight(reducer, start);
+}
+
+export function transform(parser: ParsyParser, transformer: (token: ParsyToken) => any) {
+    return new TransformParser(parser, transformer);
 }

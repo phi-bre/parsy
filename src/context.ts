@@ -3,7 +3,7 @@ import {ParsyToken} from '.';
 export class ParsyContext {
     public input: string;
     public index: number;
-    public token!: ParsyToken;
+    public token: ParsyToken;
 
     constructor(input: string, index: number = 0) {
         this.input = input;
@@ -24,11 +24,15 @@ export class ParsyContext {
 
     public close(type?: string): this {
         if (!this.token.parent) throw 'Scope mismatch';
-        this.token.value = this.input.substring(this.token.from, this.index);
-        this.token.to = this.index;
+        this.tokenize();
         this.token.parent.children.push(this.token);
         this.token = this.token.parent;
         return this;
+    }
+
+    public tokenize() {
+        this.token.value = this.input.substring(this.token.from, this.index);
+        this.token.to = this.index;
     }
 
     public discard(): this {

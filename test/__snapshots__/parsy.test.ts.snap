@@ -1,0 +1,89 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`math should parse correct structure 1`] = `
+"
+Array [
+  additive {
+    multiplicative {
+        primary {
+            integer: '[94m2[39m'
+        }
+    }
+    operator: '-'
+    additive {
+        multiplicative {
+            primary {
+                integer: '[94m2[39m'
+            }
+            operator: '*'
+            multiplicative {
+                primary {
+                    open: '('
+                    additive {
+                        multiplicative {
+                            primary {
+                                open: '('
+                                additive {
+                                    multiplicative {
+                                        primary {
+                                            integer: '[94m10[39m'
+                                        }
+                                    }
+                                    operator: '+'
+                                    additive {
+                                        multiplicative {
+                                            primary {
+                                                integer: '[94m0[39m'
+                                            }
+                                        }
+                                    }
+                                }
+                                close: ')'
+                            }
+                        }
+                        operator: '+'
+                        additive {
+                            multiplicative {
+                                primary {
+                                    integer: '[94m100000000000000000000000[39m'
+                                }
+                            }
+                        }
+                    }
+                    close: ')'
+                }
+            }
+        }
+    }
+},
+]
+"
+`;
+
+exports[`scopy should parse correct structure 1`] = `
+"
+value {
+  label: '[34mscope[39m'
+  open: '{'
+  value {
+    label: '[34manother[39m'
+    open: '{'
+    value {
+      label: '[34mone[39m'
+      open: '{'
+      close: '}'
+    }
+    close: '}'
+  }
+  value {
+    label: '[34mlike[39m'
+    open: '{'
+    value {
+      label: '[34mthis[39m'
+    }
+    close: '}'
+  }
+  close: '}'
+}
+"
+`;

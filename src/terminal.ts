@@ -1,18 +1,15 @@
 import {ParsyContext, ParsyParser} from '.';
 
 export class TerminalParser extends ParsyParser {
-    public pattern: { [literal: string]: true | undefined }
+    public pattern!: Set<string>;
 
-    constructor(...pattern: string[]) {
-        super();
-        this.pattern = {};
-        for (const literal of pattern) {
-            this.pattern[literal] = true;
-        }
+    public set(...pattern: string[]): this {
+        this.pattern = new Set<string>(pattern);
+        return this;
     }
 
     public parse(context: ParsyContext): ParsyContext | undefined {
-        if (this.pattern[context.input[context.index]]) {
+        if (this.pattern.has(context.input[context.index])) {
             return context.advance(1);
         }
     }
