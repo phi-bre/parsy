@@ -9,7 +9,7 @@ export function pretty(tokens: any): string {
                     const children = indent(token.children.map(print).join('\n'));
                     return `${token.type} {\n${children}\n}`;
                 }
-                return `${token.type}: ${color.value.open}'${token.value}'${color.value.close}`;
+                return `${token.type}: ${color.value.open}'${token.value.replace('\n', '\\n')}'${color.value.close}`;
             },
             test(token) {
                 return token instanceof ParsyToken;

@@ -1,10 +1,11 @@
 start: rule+
-identifier: [A-Za-z0-9]+
-string: ( ['] { '\\\'' . }* ['] )
-pattern: ( '[' .* ']' )
-modifier: [*+?]
-any: '.'
+identifier: [A-Za-z0-9\-_]+
+string: ( '\'' { '\\\'' '\''! }* '\'' )
+char: [\-\]]!
+char-range: ( char '-' char )
+char-set: ( '[' { char-range char }* ']' )
+modifier: [*+?!]
 rule: ( identifier ':' expression )
 sequence: ( '(' expression+ ')' )
 alternation: ( '{' expression+ '}' )
-expression: ( { sequence alternation string any identifier } modifier? )
+expression: ( { sequence alternation identifier string char-set } modifier? )

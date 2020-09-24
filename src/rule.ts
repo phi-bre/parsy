@@ -13,14 +13,7 @@ export class RuleParser extends ParsyParser {
     }
 
     public parse(context: ParsyContext): ParsyContext | undefined {
-        const {index} = context;
         context.open(this.type);
-        const temp = this.parser.parse(context);
-        if (index === context.index) {
-            context.discard();
-            return temp;
-        } else {
-            return context.close(this.type);
-        }
+        return context.close(this.parser.parse(context));
     }
 }

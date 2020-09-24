@@ -22,21 +22,13 @@ export class ParsyContext {
         return this;
     }
 
-    public close(type?: string): this {
+    public close(context: ParsyContext | undefined): this {
         if (!this.token.parent) throw 'Scope mismatch';
-        this.tokenize();
-        this.token.parent.children.push(this.token);
-        this.token = this.token.parent;
-        return this;
-    }
-
-    public tokenize() {
-        this.token.value = this.input.substring(this.token.from, this.index);
-        this.token.to = this.index;
-    }
-
-    public discard(): this {
-        if (!this.token.parent) throw 'Scope mismatch';
+        if (context) {
+            this.token.value = this.input.substring(this.token.from, this.index);
+            this.token.to = this.index;
+            this.token.parent.children.push(this.token);
+        }
         this.token = this.token.parent;
         return this;
     }

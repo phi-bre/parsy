@@ -1,9 +1,18 @@
 import {AndParser, OrParser, ParsyParser, ParsyToken, RuleParser, TerminalParser, TransformParser} from '.';
+import {NotParser} from './not';
 
 /**
  * Matches the empty string.
  */
 export const empty = new ParsyParser();
+
+export function or(left: ParsyParser, right: ParsyParser) {
+    return new OrParser().set(left, right);
+}
+
+export function and(left: ParsyParser, right: ParsyParser) {
+    return new AndParser().set(left, right);
+}
 
 /**
  * Matches a range of characters.
@@ -66,6 +75,13 @@ export function alternation(...parsers: ParsyParser[]) {
     return parsers.slice(0, -2).reduceRight(reducer, start);
 }
 
+export function not(parser: ParsyParser) {
+    return new NotParser().set(parser);
+}
+
+/**
+ * Listens to the creation of tokens created by the passed parser.
+ */
 export function transform(parser: ParsyParser, transformer: (token: ParsyToken) => any) {
     return new TransformParser(parser, transformer);
 }

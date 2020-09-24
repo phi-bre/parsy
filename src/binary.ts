@@ -19,6 +19,12 @@ export class AndParser extends BinaryParser {
 
 export class OrParser extends BinaryParser {
     public parse(context: ParsyContext): ParsyContext | undefined {
-        return this.left.parse(context) || this.right.parse(context);
+        const {index} = context;
+        if (this.left.parse(context)) {
+            return context;
+        } else {
+            context.index = index;
+            return this.right.parse(context);
+        }
     }
 }

@@ -14,6 +14,7 @@ export * from './rule';
 export * from './binary';
 export * from './context';
 export * from './helpers';
+export * from './parser';
 export * from './terminal';
 export * from './transform';
 export * from './token';

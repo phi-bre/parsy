@@ -60,6 +60,25 @@ Array [
 "
 `;
 
+exports[`parsy should parse correct structure 1`] = `
+"
+Array [
+  whitespace: '
+        ',
+  rule {
+    identifier: 'start'
+    whitespace: ' '
+    expression {
+        identifier: 'rule'
+        modifier: '+'
+    }
+},
+  whitespace: '
+        ',
+]
+"
+`;
+
 exports[`scopy should parse correct structure 1`] = `
 "
 value {

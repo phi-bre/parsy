@@ -1,30 +1,60 @@
-import {alternation, optional, ParsyToken, repeated, rule, sequence, terminal} from '../src';
-import {Parsy} from '../src/parser';
+import {Parsy, ParsyToken} from '../src';
+import * as helper from '../src/helpers';
 
-describe('#alternation', function () {
-    const a = terminal('a');
-    const b = terminal('b');
+describe('#or', function () {
+    const a = helper.terminal('a');
+    const b = helper.terminal('b');
+
+    it('should accept ab', function () {
+        const parsy = new Parsy(helper.repeated(helper.or(a, b)));
+        expect(parsy.parse('ab')).toBeTruthy();
+    });
+
+    it('should accept bb', function () {
+        const parsy = new Parsy(helper.repeated(helper.or(a, b)));
+        expect(parsy.parse('bb')).toBeTruthy();
+    });
+
+    it('should reject cb', function () {
+        const parsy = new Parsy(helper.repeated(helper.or(a, b)));
+        expect(parsy.parse('cb')).toBeFalsy();
+    });
+});
+
+describe('#and', function () {
+    const a = helper.terminal('a');
+    const b = helper.terminal('b');
 
     it('should accept a', function () {
-        const parsy = new Parsy(alternation(a, b));
+        const parsy = new Parsy(helper.and(a, b));
+        expect(parsy.parse('ab')).toBeTruthy();
+    });
+});
+
+describe('#alternation', function () {
+    const a = helper.terminal('a');
+    const b = helper.terminal('b');
+
+    it('should accept a', function () {
+        const parsy = new Parsy(helper.alternation(a, b));
         expect(parsy.parse('a')).toBeTruthy();
     });
 
     it('should accept b', function () {
-        const parsy = new Parsy(alternation(a, b));
+        const parsy = new Parsy(helper.alternation(a, b));
         expect(parsy.parse('b')).toBeTruthy();
     });
 
     it('should reject c', function () {
-        const parsy = new Parsy(alternation(a, b));
+        const parsy = new Parsy(helper.alternation(a, b));
         expect(parsy.parse('c')).toBeFalsy();
     });
 });
 
 describe('#sequence', function () {
-    const a = terminal('a');
-    const b = terminal('b');
-    const parsy = new Parsy(sequence(a, b));
+    const a = helper.terminal('a');
+    const b = helper.terminal('b');
+    const parsy = new Parsy(helper.sequence(a, b));
 
     it('should accept ab', function () {
         expect(parsy.parse('ab')).toBeTruthy();
@@ -41,7 +71,7 @@ describe('#sequence', function () {
 
 describe('#terminal', function () {
     const pattern = 'a';
-    const parsy = new Parsy(terminal(pattern));
+    const parsy = new Parsy(helper.terminal(pattern));
 
     it('should accept a', function () {
         expect(parsy.parse('a')).toBeTruthy();
@@ -53,7 +83,7 @@ describe('#terminal', function () {
 });
 
 describe('#rule', function () {
-    const a = rule('a').set(terminal('a'));
+    const a = helper.rule('a').set(helper.terminal('a'));
     const parsy = new Parsy(a);
 
     it('should build a AST', function () {
@@ -65,8 +95,8 @@ describe('#rule', function () {
 });
 
 describe('#repeated', function () {
-    const a = terminal('a');
-    const parsy = new Parsy(repeated(a));
+    const a = helper.terminal('a');
+    const parsy = new Parsy(helper.repeated(a));
 
     it('should accept a', function () {
         expect(parsy.parse('a')).toBeTruthy();
@@ -79,8 +109,8 @@ describe('#repeated', function () {
 
 
 describe('#optional', function () {
-    const a = terminal('a');
-    const parsy = new Parsy(optional(a));
+    const a = helper.terminal('a');
+    const parsy = new Parsy(helper.optional(a));
 
     it('should accept a', function () {
         expect(parsy.parse('a')).toBeTruthy();
@@ -88,5 +118,18 @@ describe('#optional', function () {
 
     it('should not accept empty string', function () {
         expect(parsy.parse('')).toBeTruthy();
+    });
+});
+
+describe('#not', function () {
+    const a = helper.terminal('a');
+    const parsy = new Parsy(helper.not(a));
+
+    it('should accept b', function () {
+        expect(parsy.parse('b')).toBeTruthy();
+    });
+
+    it('should not accept a', function () {
+        expect(parsy.parse('a')).toBeFalsy();
     });
 });
