@@ -4,14 +4,10 @@ import {highlight, pretty} from './utils';
 
 describe('parsy', function () {
     const _ = rule('whitespace');
-    const IDENTIFIER = transform(rule('identifier'), token => {
-        return token.value = color.yellow.open + token.value + color.close;
-    });
+    const IDENTIFIER = rule('identifier');
     const LABEL = rule('label');
-    const STRING = rule('string');
-    const STRING_ESCAPE = rule('string-escape');
+    const TERMINAL = rule('string');
     const CHAR = rule('char');
-    const CHAR_ESCAPE = rule('char-escape');
     const CHAR_RANGE = rule('char-range');
     const CHAR_SET = rule('char-set');
     const MODIFIER = rule('modifier');
@@ -24,38 +20,34 @@ describe('parsy', function () {
     _.set(repeated(terminal(...' \n\t\r')));
     IDENTIFIER.set(repeated(terminal(...charset('a', 'z'), ...charset('A', 'Z'), ...charset('0', '9'), '-', '_')));
     LABEL.set(sequence(IDENTIFIER, terminal(':'), EXPRESSION));
-    STRING.set(sequence(terminal('\''), optional(repeated(alternation(STRING_ESCAPE, not(terminal('\''))))), terminal('\'')));
-    STRING_ESCAPE.set(sequence(terminal('\\'), terminal('\'')));
-    CHAR.set(repeated(not(terminal(']', '-'))));
-    CHAR_ESCAPE.set(sequence(terminal('\\'), terminal(']', '-')));
-    // CHAR_RANGE.set(sequence(CHAR, terminal('-'), CHAR));
-    CHAR_SET.set(sequence(terminal('['), (CHAR), terminal(']')));
-    // CHAR_SET.set(sequence(terminal('['), optional(repeated(alternation(terminal('\\]'), not(terminal(']'))))), terminal(']')));
+    TERMINAL.set(sequence(terminal('\''), optional(repeated(alternation(sequence(terminal('\\'), terminal('\'')), not(terminal('\''))))), terminal('\'')));
+    CHAR.set(alternation(sequence(terminal('\\'), terminal(']', '-')), not(terminal(']', '-'))));
+    CHAR_RANGE.set(sequence(CHAR, terminal('-'), CHAR));
+    CHAR_SET.set(sequence(terminal('['), repeated(alternation(CHAR_RANGE, CHAR)), terminal(']')));
     MODIFIER.set(terminal(...'*+?!'));
     RULE.set(sequence(IDENTIFIER, optional(_), terminal(':'), optional(_), EXPRESSION));
     SEQUENCE.set(sequence(terminal('('), optional(_), repeated(sequence(EXPRESSION, optional(_))), optional(_), terminal(')')));
     ALTERNATION.set(sequence(terminal('{'), optional(_), repeated(sequence(EXPRESSION, optional(_))), optional(_), terminal('}')));
-    EXPRESSION.set(sequence(alternation(LABEL, SEQUENCE, ALTERNATION, IDENTIFIER, STRING, CHAR_SET), optional(repeated(MODIFIER))));
+    EXPRESSION.set(sequence(alternation(SEQUENCE, ALTERNATION, IDENTIFIER, TERMINAL, CHAR_SET), optional(repeated(MODIFIER))));
     START.set(sequence(optional(_), repeated(sequence(RULE, optional(_))), optional(_)));
 
     const parser = new Parsy(START);
     const input = `
-        abc: [abc]
         start: rule+
         identifier: [A-Za-z0-9\\-_]+
-        label: ( identifier ':' expression )
-        string: ( '\\'' { '\\\\\\'' '\\''! }* '\\'' )
+        terminal: ( '\\'' { '\\'' '\\''! }* '\\'' )
         char: [\\-\\]]!
         char-range: ( char '-' char )
         char-set: ( '[' { char-range char }* ']' )
         modifier: [*+?!]
-        rule: ( identifier colon:':' expression )
+        rule: ( identifier ':' expression )
         sequence: ( '(' expression+ ')' )
         alternation: ( '{' expression+ '}' )
-        expression: ( { label sequence alternation identifier string char-set } modifier? )
+        expression: ( { sequence alternation identifier terminal char-set } modifier? )
     `;
 
     it('should parse correct structure', function () {
+        console.log(highlight(parser.parse(input)![0]));
         expect(pretty(parser.parse(input))).toMatchSnapshot();
     });
 });
@@ -72,7 +64,7 @@ describe('scopy', function () {
     VALUE.set(sequence(LABEL, optional(sequence(OPEN, optional(repeated(VALUE)), CLOSE))));
 
     const parser = new Parsy(VALUE);
-    const input = 'scope{another{one{}}like{this}}';
+    const input = 'scope{another{one{}like{this}}';
 
     it('should parse correct structure', function () {
         expect(pretty(parser.parse(input)![0])).toMatchSnapshot();
@@ -80,7 +72,7 @@ describe('scopy', function () {
 });
 
 describe('math', function () {
-    const INTEGER = transform(rule('integer'), token => token.value = color.blueBright.open + token.value + color.blueBright.close);
+    const INTEGER = rule('integer');
     const PRIMARY = rule('primary');
     const MULTIPLICATIVE = rule('multiplicative');
     const ADDITIVE = rule('additive');
@@ -100,6 +92,7 @@ describe('math', function () {
     const input = '2-2*((10+0)+100000000000000000000000)';
 
     it('should parse correct structure', function () {
+        console.log(highlight(parser.parse(input)![0]));
         expect(pretty(parser.parse(input))).toMatchSnapshot();
     });
 });

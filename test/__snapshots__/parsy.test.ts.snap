@@ -6,14 +6,17 @@ Array [
   additive {
     multiplicative {
         primary {
-            integer: '[94m2[39m'
+            integer: '2'
+        }
+        primary {
+            integer: '2'
         }
     }
     operator: '-'
     additive {
         multiplicative {
             primary {
-                integer: '[94m2[39m'
+                integer: '2'
             }
             operator: '*'
             multiplicative {
@@ -26,14 +29,61 @@ Array [
                                 additive {
                                     multiplicative {
                                         primary {
-                                            integer: '[94m10[39m'
+                                            integer: '10'
+                                        }
+                                        primary {
+                                            integer: '10'
                                         }
                                     }
                                     operator: '+'
                                     additive {
                                         multiplicative {
                                             primary {
-                                                integer: '[94m0[39m'
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                    }
+                                }
+                                close: ')'
+                            }
+                            primary {
+                                open: '('
+                                additive {
+                                    multiplicative {
+                                        primary {
+                                            integer: '10'
+                                        }
+                                        primary {
+                                            integer: '10'
+                                        }
+                                    }
+                                    operator: '+'
+                                    additive {
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
                                             }
                                         }
                                     }
@@ -45,7 +95,305 @@ Array [
                         additive {
                             multiplicative {
                                 primary {
-                                    integer: '[94m100000000000000000000000[39m'
+                                    integer: '100000000000000000000000'
+                                }
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                            }
+                            multiplicative {
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                            }
+                        }
+                    }
+                    close: ')'
+                }
+                primary {
+                    open: '('
+                    additive {
+                        multiplicative {
+                            primary {
+                                open: '('
+                                additive {
+                                    multiplicative {
+                                        primary {
+                                            integer: '10'
+                                        }
+                                        primary {
+                                            integer: '10'
+                                        }
+                                    }
+                                    operator: '+'
+                                    additive {
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                    }
+                                }
+                                close: ')'
+                            }
+                            primary {
+                                open: '('
+                                additive {
+                                    multiplicative {
+                                        primary {
+                                            integer: '10'
+                                        }
+                                        primary {
+                                            integer: '10'
+                                        }
+                                    }
+                                    operator: '+'
+                                    additive {
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                    }
+                                }
+                                close: ')'
+                            }
+                        }
+                        operator: '+'
+                        additive {
+                            multiplicative {
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                            }
+                            multiplicative {
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                            }
+                        }
+                    }
+                    close: ')'
+                }
+            }
+        }
+        multiplicative {
+            primary {
+                integer: '2'
+            }
+            operator: '*'
+            multiplicative {
+                primary {
+                    open: '('
+                    additive {
+                        multiplicative {
+                            primary {
+                                open: '('
+                                additive {
+                                    multiplicative {
+                                        primary {
+                                            integer: '10'
+                                        }
+                                        primary {
+                                            integer: '10'
+                                        }
+                                    }
+                                    operator: '+'
+                                    additive {
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                    }
+                                }
+                                close: ')'
+                            }
+                            primary {
+                                open: '('
+                                additive {
+                                    multiplicative {
+                                        primary {
+                                            integer: '10'
+                                        }
+                                        primary {
+                                            integer: '10'
+                                        }
+                                    }
+                                    operator: '+'
+                                    additive {
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                    }
+                                }
+                                close: ')'
+                            }
+                        }
+                        operator: '+'
+                        additive {
+                            multiplicative {
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                            }
+                            multiplicative {
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                            }
+                        }
+                    }
+                    close: ')'
+                }
+                primary {
+                    open: '('
+                    additive {
+                        multiplicative {
+                            primary {
+                                open: '('
+                                additive {
+                                    multiplicative {
+                                        primary {
+                                            integer: '10'
+                                        }
+                                        primary {
+                                            integer: '10'
+                                        }
+                                    }
+                                    operator: '+'
+                                    additive {
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                    }
+                                }
+                                close: ')'
+                            }
+                            primary {
+                                open: '('
+                                additive {
+                                    multiplicative {
+                                        primary {
+                                            integer: '10'
+                                        }
+                                        primary {
+                                            integer: '10'
+                                        }
+                                    }
+                                    operator: '+'
+                                    additive {
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                        multiplicative {
+                                            primary {
+                                                integer: '0'
+                                            }
+                                            primary {
+                                                integer: '0'
+                                            }
+                                        }
+                                    }
+                                }
+                                close: ')'
+                            }
+                        }
+                        operator: '+'
+                        additive {
+                            multiplicative {
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                            }
+                            multiplicative {
+                                primary {
+                                    integer: '100000000000000000000000'
+                                }
+                                primary {
+                                    integer: '100000000000000000000000'
                                 }
                             }
                         }
@@ -63,18 +411,265 @@ Array [
 exports[`parsy should parse correct structure 1`] = `
 "
 Array [
-  whitespace: '
-        ',
-  rule {
-    identifier: 'start'
-    whitespace: ' '
-    expression {
-        identifier: 'rule'
-        modifier: '+'
+  start {
+    whitespace: '\\\\n        '
+    rule {
+        identifier: 'start'
+        whitespace: ' '
+        expression {
+            identifier: 'rule'
+            modifier: '+'
+        }
     }
+    whitespace: '\\\\n        '
+    rule {
+        identifier: 'identifier'
+        whitespace: ' '
+        expression {
+            char-set {
+                char-range {
+                    char: 'A'
+                    char: 'Z'
+                }
+                char-range {
+                    char: 'a'
+                    char: 'z'
+                }
+                char-range {
+                    char: '0'
+                    char: '9'
+                }
+                char: '\\\\-'
+                char: '_'
+            }
+            modifier: '+'
+        }
+    }
+    whitespace: '\\\\n        '
+    rule {
+        identifier: 'terminal'
+        whitespace: ' '
+        expression {
+            sequence {
+                whitespace: ' '
+                expression {
+                    string: ''\\\\'''
+                }
+                whitespace: ' '
+                expression {
+                    alternation {
+                        whitespace: ' '
+                        expression {
+                            string: ''\\\\'''
+                        }
+                        whitespace: ' '
+                        expression {
+                            string: ''\\\\'''
+                            modifier: '!'
+                        }
+                        whitespace: ' '
+                    }
+                    modifier: '*'
+                }
+                whitespace: ' '
+                expression {
+                    string: ''\\\\'''
+                }
+                whitespace: ' '
+            }
+        }
+    }
+    whitespace: '\\\\n        '
+    rule {
+        identifier: 'char'
+        whitespace: ' '
+        expression {
+            char-set {
+                char: '\\\\-'
+                char: '\\\\]'
+            }
+            modifier: '!'
+        }
+    }
+    whitespace: '\\\\n        '
+    rule {
+        identifier: 'char-range'
+        whitespace: ' '
+        expression {
+            sequence {
+                whitespace: ' '
+                expression {
+                    identifier: 'char'
+                }
+                whitespace: ' '
+                expression {
+                    string: ''-''
+                }
+                whitespace: ' '
+                expression {
+                    identifier: 'char'
+                }
+                whitespace: ' '
+            }
+        }
+    }
+    whitespace: '\\\\n        '
+    rule {
+        identifier: 'char-set'
+        whitespace: ' '
+        expression {
+            sequence {
+                whitespace: ' '
+                expression {
+                    string: ''[''
+                }
+                whitespace: ' '
+                expression {
+                    alternation {
+                        whitespace: ' '
+                        expression {
+                            identifier: 'char-range'
+                        }
+                        whitespace: ' '
+                        expression {
+                            identifier: 'char'
+                        }
+                        whitespace: ' '
+                    }
+                    modifier: '*'
+                }
+                whitespace: ' '
+                expression {
+                    string: '']''
+                }
+                whitespace: ' '
+            }
+        }
+    }
+    whitespace: '\\\\n        '
+    rule {
+        identifier: 'modifier'
+        whitespace: ' '
+        expression {
+            char-set {
+                char: '*'
+                char: '+'
+                char: '?'
+                char: '!'
+            }
+        }
+    }
+    whitespace: '\\\\n        '
+    rule {
+        identifier: 'rule'
+        whitespace: ' '
+        expression {
+            sequence {
+                whitespace: ' '
+                expression {
+                    identifier: 'identifier'
+                }
+                whitespace: ' '
+                expression {
+                    string: '':''
+                }
+                whitespace: ' '
+                expression {
+                    identifier: 'expression'
+                }
+                whitespace: ' '
+            }
+        }
+    }
+    whitespace: '\\\\n        '
+    rule {
+        identifier: 'sequence'
+        whitespace: ' '
+        expression {
+            sequence {
+                whitespace: ' '
+                expression {
+                    string: ''(''
+                }
+                whitespace: ' '
+                expression {
+                    identifier: 'expression'
+                    modifier: '+'
+                }
+                whitespace: ' '
+                expression {
+                    string: '')''
+                }
+                whitespace: ' '
+            }
+        }
+    }
+    whitespace: '\\\\n        '
+    rule {
+        identifier: 'alternation'
+        whitespace: ' '
+        expression {
+            sequence {
+                whitespace: ' '
+                expression {
+                    string: ''{''
+                }
+                whitespace: ' '
+                expression {
+                    identifier: 'expression'
+                    modifier: '+'
+                }
+                whitespace: ' '
+                expression {
+                    string: ''}''
+                }
+                whitespace: ' '
+            }
+        }
+    }
+    whitespace: '\\\\n        '
+    rule {
+        identifier: 'expression'
+        whitespace: ' '
+        expression {
+            sequence {
+                whitespace: ' '
+                expression {
+                    alternation {
+                        whitespace: ' '
+                        expression {
+                            identifier: 'sequence'
+                        }
+                        whitespace: ' '
+                        expression {
+                            identifier: 'alternation'
+                        }
+                        whitespace: ' '
+                        expression {
+                            identifier: 'identifier'
+                        }
+                        whitespace: ' '
+                        expression {
+                            identifier: 'terminal'
+                        }
+                        whitespace: ' '
+                        expression {
+                            identifier: 'char-set'
+                        }
+                        whitespace: ' '
+                    }
+                }
+                whitespace: ' '
+                expression {
+                    identifier: 'modifier'
+                    modifier: '?'
+                }
+                whitespace: ' '
+            }
+        }
+    }
+    whitespace: '\\\\n    '
 },
-  whitespace: '
-        ',
 ]
 "
 `;
@@ -82,27 +677,26 @@ Array [
 exports[`scopy should parse correct structure 1`] = `
 "
 value {
-  label: '[34mscope[39m'
+  label: 'scope'
   open: '{'
   value {
-    label: '[34manother[39m'
+    label: 'another'
     open: '{'
     value {
-      label: '[34mone[39m'
+      label: 'one'
       open: '{'
+      close: '}'
+    }
+    value {
+      label: 'like'
+      open: '{'
+      value {
+        label: 'this'
+      }
       close: '}'
     }
     close: '}'
   }
-  value {
-    label: '[34mlike[39m'
-    open: '{'
-    value {
-      label: '[34mthis[39m'
-    }
-    close: '}'
-  }
-  close: '}'
 }
 "
 `;

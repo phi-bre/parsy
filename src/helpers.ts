@@ -25,11 +25,8 @@ export function terminal(...pattern: string[]) {
  * Returns a list of characters between the given char codes.
  */
 export function charset(from: string, to: string) {
-    const set = new Array<string>();
-    for (let char = from.charCodeAt(0); char <= to.charCodeAt(0); char++) {
-        set.push(String.fromCharCode(char));
-    }
-    return set;
+    return [...Array(to.charCodeAt(0) - from.charCodeAt(0) + 1).keys()]
+        .map(value => String.fromCharCode(value + from.charCodeAt(0)));
 }
 
 /**
@@ -75,6 +72,9 @@ export function alternation(...parsers: ParsyParser[]) {
     return parsers.slice(0, -2).reduceRight(reducer, start);
 }
 
+/**
+ * Inverts the specified parser's output.
+ */
 export function not(parser: ParsyParser) {
     return new NotParser().set(parser);
 }

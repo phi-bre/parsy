@@ -14,6 +14,8 @@ export class RuleParser extends ParsyParser {
 
     public parse(context: ParsyContext): ParsyContext | undefined {
         context.open(this.type);
-        return context.close(this.parser.parse(context));
+        const temp = this.parser.parse(context);
+        context.close(!!temp);
+        return temp;
     }
 }

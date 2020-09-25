@@ -133,3 +133,11 @@ describe('#not', function () {
         expect(parsy.parse('a')).toBeFalsy();
     });
 });
+
+describe('#charset', function () {
+    const range = helper.charset('a', 'c');
+
+    it('should equal a b c', function () {
+        expect(range).toEqual(['a', 'b', 'c']);
+    });
+});

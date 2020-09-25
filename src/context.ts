@@ -22,9 +22,9 @@ export class ParsyContext {
         return this;
     }
 
-    public close(context: ParsyContext | undefined): this {
+    public close(keep: boolean): this {
         if (!this.token.parent) throw 'Scope mismatch';
-        if (context) {
+        if (keep) {
             this.token.value = this.input.substring(this.token.from, this.index);
             this.token.to = this.index;
             this.token.parent.children.push(this.token);
