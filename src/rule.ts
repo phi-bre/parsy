@@ -1,4 +1,4 @@
-import {ParsyContext, ParsyParser} from './';
+import { ParsyContext, ParsyParser } from './';
 
 export class RuleParser extends ParsyParser {
     public parser!: ParsyParser;

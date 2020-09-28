@@ -1,4 +1,5 @@
-import {ParsyContext} from './context';
+import { ParsyContext } from './context';
+import { ParsyToken } from './token';
 
 export class ParsyParser {
     public parse(context: ParsyContext): ParsyContext | undefined {
@@ -10,10 +11,11 @@ export class ParsyParser {
     }
 }
 
+export type ParsyTransform = (token: ParsyToken) => any;
+
 export * from './rule';
 export * from './binary';
 export * from './context';
-export * from './helpers';
 export * from './parsy';
 export * from './terminal';
 export * from './transform';

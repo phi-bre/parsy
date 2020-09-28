@@ -1,4 +1,4 @@
-import {ParsyContext, ParsyParser} from '.';
+import { ParsyContext, ParsyParser } from '.';
 
 export abstract class BinaryParser extends ParsyParser {
     public left!: ParsyParser;
@@ -19,7 +19,7 @@ export class AndParser extends BinaryParser {
 
 export class OrParser extends BinaryParser {
     public parse(context: ParsyContext): ParsyContext | undefined {
-        const {index} = context;
+        const { index } = context;
         if (this.left.parse(context)) {
             return context;
         } else {

@@ -1,4 +1,4 @@
-import {ParsyToken} from '.';
+import { ParsyToken } from '.';
 
 export class ParsyContext {
     public input: string;
@@ -25,7 +25,10 @@ export class ParsyContext {
     public close(keep: boolean): this {
         if (!this.token.parent) throw 'Scope mismatch';
         if (keep) {
-            this.token.value = this.input.substring(this.token.from, this.index);
+            this.token.value = this.input.substring(
+                this.token.from,
+                this.index
+            );
             this.token.to = this.index;
             this.token.parent.children.push(this.token);
         }

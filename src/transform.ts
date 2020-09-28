@@ -1,10 +1,10 @@
-import {ParsyContext, ParsyParser, ParsyToken} from './index';
+import { ParsyContext, ParsyParser, ParsyTransform } from './index';
 
 export class TransformParser extends ParsyParser {
     public parser!: ParsyParser;
-    public transformer!: (token: ParsyToken) => any;
+    public transformer!: ParsyTransform;
 
-    constructor(parser: ParsyParser, transformer: (token: ParsyToken) => any) {
+    constructor(parser: ParsyParser, transformer: ParsyTransform) {
         super();
         this.parser = parser;
         this.transformer = transformer;
@@ -18,7 +18,9 @@ export class TransformParser extends ParsyParser {
     public parse(context: ParsyContext): ParsyContext | undefined {
         const temp = this.parser.parse(context);
         if (temp) {
-            this.transformer(context.token.children[context.token.children.length - 1]);
+            this.transformer(
+                context.token.children[context.token.children.length - 1]
+            );
         }
         return temp;
     }

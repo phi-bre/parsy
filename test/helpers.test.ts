@@ -1,60 +1,59 @@
-import {Parsy, ParsyToken} from '../src';
-import * as helper from '../src/helpers';
+import { Parsy, ParsyToken } from '../src';
 
 describe('#or', function () {
-    const a = helper.terminal('a');
-    const b = helper.terminal('b');
+    const a = Parsy.terminal('a');
+    const b = Parsy.terminal('b');
 
     it('should accept ab', function () {
-        const parsy = new Parsy(helper.repeated(helper.or(a, b)));
+        const parsy = new Parsy(Parsy.repeated(Parsy.or(a, b)));
         expect(parsy.parse('ab')).toBeTruthy();
     });
 
     it('should accept bb', function () {
-        const parsy = new Parsy(helper.repeated(helper.or(a, b)));
+        const parsy = new Parsy(Parsy.repeated(Parsy.or(a, b)));
         expect(parsy.parse('bb')).toBeTruthy();
     });
 
     it('should reject cb', function () {
-        const parsy = new Parsy(helper.repeated(helper.or(a, b)));
+        const parsy = new Parsy(Parsy.repeated(Parsy.or(a, b)));
         expect(parsy.parse('cb')).toBeFalsy();
     });
 });
 
 describe('#and', function () {
-    const a = helper.terminal('a');
-    const b = helper.terminal('b');
+    const a = Parsy.terminal('a');
+    const b = Parsy.terminal('b');
 
     it('should accept a', function () {
-        const parsy = new Parsy(helper.and(a, b));
+        const parsy = new Parsy(Parsy.and(a, b));
         expect(parsy.parse('ab')).toBeTruthy();
     });
 });
 
 describe('#alternation', function () {
-    const a = helper.terminal('a');
-    const b = helper.terminal('b');
+    const a = Parsy.terminal('a');
+    const b = Parsy.terminal('b');
 
     it('should accept a', function () {
-        const parsy = new Parsy(helper.alternation(a, b));
+        const parsy = new Parsy(Parsy.alternation(a, b));
         expect(parsy.parse('a')).toBeTruthy();
     });
 
     it('should accept b', function () {
-        const parsy = new Parsy(helper.alternation(a, b));
+        const parsy = new Parsy(Parsy.alternation(a, b));
         expect(parsy.parse('b')).toBeTruthy();
     });
 
     it('should reject c', function () {
-        const parsy = new Parsy(helper.alternation(a, b));
+        const parsy = new Parsy(Parsy.alternation(a, b));
         expect(parsy.parse('c')).toBeFalsy();
     });
 });
 
 describe('#sequence', function () {
-    const a = helper.terminal('a');
-    const b = helper.terminal('b');
-    const parsy = new Parsy(helper.sequence(a, b));
+    const a = Parsy.terminal('a');
+    const b = Parsy.terminal('b');
+    const parsy = new Parsy(Parsy.sequence(a, b));
 
     it('should accept ab', function () {
         expect(parsy.parse('ab')).toBeTruthy();
@@ -71,7 +70,7 @@ describe('#sequence', function () {
 
 describe('#terminal', function () {
     const pattern = 'a';
-    const parsy = new Parsy(helper.terminal(pattern));
+    const parsy = new Parsy(Parsy.terminal(pattern));
 
     it('should accept a', function () {
         expect(parsy.parse('a')).toBeTruthy();
@@ -83,7 +82,7 @@ describe('#terminal', function () {
 });
 
 describe('#rule', function () {
-    const a = helper.rule('a').set(helper.terminal('a'));
+    const a = Parsy.rule('a').set(Parsy.terminal('a'));
     const parsy = new Parsy(a);
 
     it('should build a AST', function () {
@@ -95,8 +94,8 @@ describe('#rule', function () {
 });
 
 describe('#repeated', function () {
-    const a = helper.terminal('a');
-    const parsy = new Parsy(helper.repeated(a));
+    const a = Parsy.terminal('a');
+    const parsy = new Parsy(Parsy.repeated(a));
 
     it('should accept a', function () {
         expect(parsy.parse('a')).toBeTruthy();
@@ -107,10 +106,9 @@ describe('#repeated', function () {
     });
 });
 
-
 describe('#optional', function () {
-    const a = helper.terminal('a');
-    const parsy = new Parsy(helper.optional(a));
+    const a = Parsy.terminal('a');
+    const parsy = new Parsy(Parsy.optional(a));
 
     it('should accept a', function () {
         expect(parsy.parse('a')).toBeTruthy();
@@ -122,8 +120,8 @@ describe('#optional', function () {
 });
 
 describe('#not', function () {
-    const a = helper.terminal('a');
-    const parsy = new Parsy(helper.not(a));
+    const a = Parsy.terminal('a');
+    const parsy = new Parsy(Parsy.not(a));
 
     it('should accept b', function () {
         expect(parsy.parse('b')).toBeTruthy();
@@ -135,7 +133,7 @@ describe('#not', function () {
 });
 
 describe('#charset', function () {
-    const range = helper.charset('a', 'c');
+    const range = Parsy.charset('a', 'c');
 
     it('should equal a b c', function () {
         expect(range).toEqual(['a', 'b', 'c']);

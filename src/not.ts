@@ -1,4 +1,4 @@
-import {ParsyContext, ParsyParser} from './index';
+import { ParsyContext, ParsyParser } from './index';
 
 export class NotParser extends ParsyParser {
     public parser!: ParsyParser;

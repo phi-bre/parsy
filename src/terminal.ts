@@ -1,4 +1,4 @@
-import {ParsyContext, ParsyParser} from '.';
+import { ParsyContext, ParsyParser } from '.';
 
 export class TerminalParser extends ParsyParser {
     public pattern!: Set<string>;
