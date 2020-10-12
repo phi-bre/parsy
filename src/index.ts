@@ -1,22 +1,20 @@
-import { ParsyContext } from './context';
-import { ParsyToken } from './token';
+export * from './core';
+export * from './terminals';
+export * from './parsy';
 
-export class ParsyParser {
-    public parse(context: ParsyContext): ParsyContext | undefined {
-        return context;
-    }
+export type ParsyParser<I = any, O = any> = (
+    input: I
+) => Generator<O, boolean, undefined>;
+export type ParsyTransformer<I, T> = (token: I) => T;
 
-    public set(...params: any): this {
-        return this;
-    }
+export interface ParsyContext {
+    input: string;
+    index: number;
 }
 
-export type ParsyTransform = (token: ParsyToken) => any;
-
-export * from './rule';
-export * from './binary';
-export * from './context';
-export * from './parsy';
-export * from './terminal';
-export * from './transform';
-export * from './token';
+export interface ParsyToken<T = any> extends ParsyContext {
+    type: string;
+    value: string;
+    length: number;
+    tokens: T[];
+}

@@ -6,19 +6,20 @@ export function pretty(tokens: any): string {
         plugins: [
             {
                 print(token: any, print, indent, options, color) {
-                    if (token.children.length) {
+                    if (token.tokens.length) {
                         const children = indent(
-                            token.children.map(print).join('\n')
+                            token.tokens.map(print).join('\n')
                         );
                         return `${token.type} {\n${children}\n}`;
+                    } else {
+                        return `${token.type}: ${
+                            color.value.open
+                        }'${token.value.replace('\n', '\\n')}'${
+                            color.value.close
+                        }`;
                     }
-                    return `${token.type}: ${
-                        color.value.open
-                    }'${token.value.replace('\n', '\\n')}'${color.value.close}`;
                 },
-                test(token) {
-                    return token instanceof ParsyToken;
-                },
+                test: (token: ParsyToken) => !!token.type,
             },
         ],
     });
@@ -30,14 +31,12 @@ export function highlight(tokens: any): string {
         plugins: [
             {
                 print(token: any, print) {
-                    if (token.children.length) {
-                        return token.children.map(print).join('');
+                    if (token.tokens.length) {
+                        return token.tokens.map(print).join('');
                     }
                     return token.value;
                 },
-                test(token) {
-                    return token instanceof ParsyToken;
-                },
+                test: (token: ParsyToken) => !!token.type,
             },
         ],
     });

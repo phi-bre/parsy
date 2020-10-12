@@ -1,111 +1,101 @@
+import { and, or, terminal } from './core';
 import {
-    AndParser,
-    OrParser,
     ParsyContext,
     ParsyParser,
-    ParsyTransform,
-    RuleParser,
-    TerminalParser,
-    TransformParser,
-} from '.';
-import { NotParser } from './not';
+    ParsyToken,
+    ParsyTransformer,
+} from './index';
+import { assign, collect } from './utils';
 
-export class Parsy {
-    constructor(public parser: ParsyParser) {}
+export function sequence<I, O>(
+    ...parsers: Array<ParsyParser<I, O>>
+): ParsyParser<I, O> {
+    return parsers.reduce(and);
+}
 
-    public parse(input: string) {
-        const context = new ParsyContext(input);
-        const result = this.parser.parse(context);
-        if (result) {
-            return result.token.children;
-        }
-    }
+export function aggregate<I, O>(parser: ParsyParser<I, O>): ParsyParser<I, O> {
+    return terminal((context) => collect(parser(context)));
+}
 
-    /**
-     * Matches the empty string.
-     */
-    static empty = new ParsyParser();
+export function alternation<I, O>(
+    ...parsers: Array<ParsyParser<I, O>>
+): ParsyParser<I, O> {
+    return parsers.map(aggregate).reduce(or);
+}
 
-    static or(left: ParsyParser, right: ParsyParser) {
-        return new OrParser().set(left, right);
-    }
+export function repeated<I, O>(parser: ParsyParser<I, O>): ParsyParser<I, O> {
+    const self = assign(and);
+    return self.set(parser, optional(self));
+}
 
-    static and(left: ParsyParser, right: ParsyParser) {
-        return new AndParser().set(left, right);
-    }
+export function optional<I, O>(parser: ParsyParser<I, O>): ParsyParser<I, O> {
+    return function* (context) {
+        return (yield* parser(context)) || true;
+    };
+}
 
-    /**
-     * Matches a range of characters.
-     */
-    static terminal(...pattern: string[]) {
-        return new TerminalParser().set(...pattern);
-    }
+export function not<I, O>(parser: ParsyParser<I, O>): ParsyParser<I, O> {
+    return function* (context) {
+        return !(yield* parser(context));
+    };
+}
 
-    /**
-     * Returns a list of characters between the given char codes.
-     */
-    static charset(from: string, to: string) {
-        return [...Array(to.charCodeAt(0) - from.charCodeAt(0) + 1).keys()]
-            .map((value) => String.fromCharCode(value + from.charCodeAt(0)));
-    }
+// export function transform<I, O, T>(parser: ParsyParser<I, O>, transformer: ParsyTransformer<O[], T>): ParsyParser<I, T> {
+//     return terminal(context => {
+//         const value = collect(reduce(parser)(context));
+//         return value ? [transformer(value)] : null;
+//     });
+// }
 
-    /**
-     * Scopes the passed parser with a type.
-     */
-    static rule(type: string) {
-        return new RuleParser(type);
-    }
+// export function drive<O extends { length: number }>(parser: ParsyParser<ParsyContext, O>): ParsyParser<ParsyContext, O> {
+//     return function* ({ input, index }) {
+//         const context: ParsyContext = { input, index };
+//         const iterator = parser(context);
+//         let result = iterator.next();
+//         while (!result.done) {
+//             context.index += result.value.length;
+//             yield result.value;
+//             result = iterator.next();
+//         }
+//         return result.value;
+//     }
+// }
 
-    /**
-     * Matches the supplied sequence but recovers if not all of the rules match.
-     * Makes the sequence optional.
-     */
-    static optional(parser: ParsyParser) {
-        return new OrParser().set(parser, this.empty);
-    }
-
-    /**
-     * Repeats matching the supplied rule for as long as the input allows for it.
-     * Must match at least once.
-     */
-    static repeated(parser: ParsyParser) {
-        const self = new AndParser();
-        return self.set(parser, this.optional(self));
-    }
-
-    /**
-     * Matches a sequence of rules.
-     * All the rules provided need to match.
-     */
-    static sequence(...parsers: ParsyParser[]) {
-        const reducer = (parser, rule) => new AndParser().set(rule, parser);
-        return parsers.reduceRight(reducer);
-    }
-
-    /**
-     * Searches for the first type that matches in sequential order.
-     * At least one of the rules has to match.
-     */
-    static alternation(...parsers: ParsyParser[]) {
-        const start = new OrParser().set(
-            parsers[parsers.length - 2],
-            parsers[parsers.length - 1]
+export function reduce<O extends { length: number }>(
+    parser: ParsyParser<ParsyContext, O>
+): ParsyParser<ParsyContext, O> {
+    return terminal(({ input, index }) => {
+        const context: ParsyContext = { input, index };
+        return collect(
+            parser(context),
+            (value) => (context.index += value.length)
         );
-        const reducer = (parser, rule) => new OrParser().set(rule, parser);
-        return parsers.slice(0, -2).reduceRight(reducer, start);
-    }
+    });
+}
 
-    /**
-     * Inverts the specified parser's output.
-     */
-    static not(parser: ParsyParser) {
-        return new NotParser().set(parser);
-    }
+export function rule<T extends { length: number }>(type: string) {
+    return assign(
+        (
+            parser: ParsyParser<ParsyContext, T>
+        ): ParsyParser<ParsyContext, ParsyToken> => {
+            return terminal(({ input, index }) => {
+                const context: ParsyContext = { input, index };
+                const tokens = collect(
+                    parser(context),
+                    (value) => (context.index += value.length)
+                );
+                if (tokens) {
+                    const length = context.index - index;
+                    const value = input.substr(index, length);
+                    return [{ input, index, value, tokens, length, type }];
+                } else return null;
+            });
+        }
+    );
+}
 
-    /**
-     * Listens to the creation of tokens created by the passed parser.
-     */
-    static transform(parser: ParsyParser, transformer: ParsyTransform) {
-        return new TransformParser(parser, transformer);
-    }
+export function parsy<O>(parser: ParsyParser<ParsyContext, O>) {
+    return (input: string, index = 0) => {
+        return collect(rule('root').set(parser)({ input, index }));
+    };
 }
