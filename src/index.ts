@@ -1,234 +1,229 @@
-// interface Token {
-//     type: string;
-//     value: string;
-// }
+// // const chr = (char: string): Terminal => value => {
+// //     return value === char;
+// // };
+// //
+// // const set = (from: string, to: string): Terminal => value => {
+// //     return value.charCodeAt(0) >= from.charCodeAt(0) && value.charCodeAt(0) <= to.charCodeAt(0);
+// // };
 //
-// interface Parser {
-//     (input: any, offset: number): Token | undefined;
-// }
-//
-// interface Grammar {
-//     rule(name: string, block: (context: Context) => Parser);
-//     on(name: string, listener: (token: Token) => void);
-// }
-//
-// type Context = {
-//     [key: string]: Parser;
-// } & {
-//     char(character: string): Parser;
-// };
-
-const chr = (char: string): Rule => ({
-    // type: 'terminal',
-    name: `chr(${char})`,
-    create: parser => ({
-        next: value => ({
-            value: value === char ? value : undefined,
-            done: true,
-        }),
-    }),
-    open(context) {
-        if (context.value === char) {
-            context.commit(context.value);
-        } else {
-            context.fail();
-        }
-    },
-    close(context) {
-        context.fail();
-    },
-});
-
-const set = (from: string, to: string): Rule & { min: number, max: number } => ({
-    name: `set(${from}-${to})`,
-    min: from.charCodeAt(0),
-    max: to.charCodeAt(0),
-    open(context) {
-        const code = context.value.charCodeAt(0);
-        if (code >= this.min && code <= this.max) {
-            context.commit(context.value);
-        } else {
-            context.fail();
-        }
-    },
-    close(context) {
-
-    },
-});
-
-const str = (value: string): Rule => seq([...value].map(chr));
-
-const seq = (...rules: Rule[]): Rule => ({
-    name: 'seq',
-    create: (parser: Parser) => ({
-        index: 0,
-        children: [rules[0].create(parser)],
-        next(context) {
-            return context.fork()
-        },
-    }),
-});
-
-const alt = (...rules): Rule => ({
-    name: 'alt',
-    create: parser => {
-        parser.branches
-        return ({
-
-        });
-    },
-});
-
-const opt = (rule: Rule): Rule => ({
-    name: 'opt',
-    create: parser => ({
-        next(context: Context) {
-
-        },
-    }),
-});
-
-const ref = (rule: string): Rule => ({
-    name: rule,
-    create: parser => ({
-        next: context => ({}),
-    }),
-});
-
-// @ts-ignore
-// function describe(start, block) {
-//     const syntax = {
-//         start: start,
-//         rules: {},
-//         listeners: {},
-//         add: (name, block) => syntax.rules[name] = block,
-//         on: (name, listener) => syntax.listeners[name] = listener,
-//         parse: (input, index = 0) => {
-//             const forks = [];
-//             const context = {
-//                 name: start,
-//                 input: input,
-//                 index: index,
-//                 branches: [],
-//                 commit: (token) => context.branches.push(token),
-//                 fork: (name = context.name) => {
-//                     forks.push({ ...context, name, branches: [...context.branches] });
-//                 },
-//                 merge: () => {},
-//             };
-//             while (context.index < context.input.length) {
-//                 for (const fork of forks) {
-//
-//                 }
-//                 context.index++;
-//             }
+// const chr = (char: string): Rule => ({
+//     name: `chr(${char})`,
+//     call: (parser, parent) => ({
+//         parser,
+//         parent,
+//         value: char,
+//         children: [],
+//         next(value) {
+//             return value === char;
 //         },
-//     };
-//     block(syntax);
-//     return syntax;
-// }
-//
-// const parser = describe('label', syntax => {
-//     syntax.add('label', rules => seq(opt(alt(seq(chr('b'), chr('a'))))));
-//     // syntax.add('{', ctx => ctx.terminal('{'));
-//     // syntax.add('}', ctx => ctx.terminal('}'));
-//     syntax.on('label', token => console.log(token));
+//     }),
 // });
 //
-// console.log(parser.parse('aabbcc'));
+// const not = (rule: Rule): Rule => ({
+//     name: `not(${rule.name})`,
+//     call: (parser, parent) => ({
+//         parser,
+//         parent,
+//         process: rule.call(parser, this),
+//         children: [],
+//         next(value) {
+//             return !this.process.next(value);
+//         },
+//     }),
+// });
 //
-// const parser = parsy
-//             .rule('root')
-//             .set(
-//                 parsy.sequence(
-//                     parsy.optional(
-//                         parsy.alternation(
-//                             parsy.sequence(parsy.char('b'), parsy.char('a')),
-//                             parsy.sequence(parsy.char('b'), parsy.char('b'))
-//                         )
-//                     ),
-//                     parsy.char('c')
-//                 )
-//             );
+// const str = (string: string): Rule => ({
+//     name: `str(${string})`,
 //
-//         for (const token of parser({ input: 'bbc', index: 0 })) {
-//             console.log(JSON.stringify(token, null, 4));
+// });
+//
+// const seq = (...rules: Rule[]): Rule => ({
+//     name: 'seq',
+//     call: (parser, parent) => ({
+//         index: 0,
+//         before() {
+//
+//         },
+//         close() {
+//             rules[++this.index].before();
+//         },
+//     })
+// });
+//
+// const alt = (...rules: Rule[]): Rule => ({
+//     name: 'alt',
+//     call: (parser, parent) => {
+//         const context: Context = { parser, parent, children: [],
+//             close() {
+//
+//             }
+//         };
+//         for (const rule of rules) {
+//             parser.branches.add(rule.call(parser, context));
 //         }
+//         return context;
+//     }
+// });
+//
+// const opt = (rule: Rule): Rule => ({
+//     name: 'opt',
+//     call: (parser, parent) => ({
+//         parser,
+//         parent,
+//         children: [],
+//         open() {
+//
+//         },
+//         next() {
+//
+//         },
+//     })
+// });
+//
+// const ref = (rule: string): Rule => ({
+//     name: rule,
+//     call: (parser, parent) => parser.rules[rule].call(parser, parent)
+// });
+//
+// interface Rule {
+//     name: string;
+//     call(parser: Parser, parent?: Context): Context;
+// }
+//
+// interface Context {
+//     parser: Parser;
+//     parent?: Context;
+//     children: Context[];
+//     next?();
+//     catch?();
+// }
+//
+// class Parser {
+//     public branches!: Set<Context>;
+//
+//     constructor(public rules: Record<string, Rule>, public start: string) {
+//     }
+//
+//     // public compile(start: string) {
+//     //     for (const rule in this.rules) {
+//     //         this.rules[rule]
+//     //     }
+//     // }
+//
+//     public parse(input: Iterable<string>) {
+//         this.branches = new Set<Context>([this.rules[this.start].call(this)]);
+//         for (const value of input) {
+//             for (const branch of this.branches) {
+//                 if (!branch.next?.(value)) {
+//                     this.branches.delete(branch);
+//                     while (branch.parent?.catch) {
+//                         branch.parent.catch();
+//                     }
+//                 }
+//             }
+//         }
+//         return this.branches;
+//     }
+// }
+//
+// const parser = new Parser({
+//     label: seq(opt(alt(seq(chr('b'), chr('a'))))),
+// }, 'label');
+// // parser.compile('label');
+// parser.parse('asdasd');
 
-// Grammar is a complete set of rules for a given sequence.
 
 interface Rule {
-    name: string;
-    create(parser: Parser): Context;
+    type: string;
+    children: Rule[];
 }
 
-interface Context {
-    next(context: Context);
-    fail();
-    fork();
+function chr(char: string): Rule {
+    return {
+        type: 'char',
+        children: [],
+    };
 }
 
-class Grammar {
-    constructor(public rules: Record<string, Rule> = {}) {
-        for (const rule in rules) {
-            rules[rule].name = rule;
-        }
-    }
-
-    public set(name: string, rule: Rule) {
-        this.rules[name] = rule;
-    }
+function set(from: string, to: string): Rule {
+    return {
+        type: 'set',
+        children: [],
+    };
 }
 
-class Parser {
-    public branches!: Context[];
-
-    constructor(
-        public grammar: Grammar,
-        public start: string,
-    ) {
-    }
-
-    public parse(input: Iterable<string>) {
-        this.branches = [this.grammar.rules[this.start].create(this)];
-        for (const value of input) {
-
-        }
-        return this.branches;
-    }
+function ref(rule: string): Rule {
+    return {
+        type: 'reference',
+        children: [],
+    };
 }
 
-// class Context {
-//     public value: string;
-//
-//     constructor(
-//         public readonly parser: Parser,
-//         public readonly rule: Rule,
-//         public children: Context[] = [],
-//     ) {
-//         this.value = '';
-//     }
-//
-//     public commit(value: string) {
-//         this.children.push(value);
-//     }
-//
-//     public fail(key: string) {
-//
-//     }
-//
-//     public fork(rule: string) {
-//         const context = new Context(this.parser, this.rule, [...this.children]);
-//         // this.branches.push(context);
-//     }
-//
-//     // public merge() {
-//     //
-//     // }
+function seq(...rules: Rule[]): Rule {
+    return {
+        type: 'sequence',
+        children: rules,
+    };
+}
+
+function alt(...branches: Rule[]): Rule {
+    return {
+        type: 'alternation',
+        children: branches,
+    };
+}
+
+function opt(rule: Rule): Rule {
+    return {
+        type: 'optional',
+        children: [rule],
+    };
+}
+
+function rep(rule: Rule): Rule {
+    return {
+        type: 'repeated',
+        children: [rule],
+    };
+}
+
+function def(...rules: Rule[]): Rule {
+    return {
+        type: 'define',
+        children: rules,
+    };
+}
+
+function rule(name: string, rule: Rule): Rule {
+    return {
+        type: 'rule',
+        children: [rule],
+    };
+}
+
+// Parsers inherently have a problem deciding between memory size (by aggregating each rule's children)
+// and time complexity (by descending the tree recursively for each rule).
+// Which is the same problem that databases face, storing often used values in indexes,
+// using up more space, or search through the whole list/table to manually find items.
+// N vs NP
+
+const tree = def(
+    rule('label', rep(set('a', 'z'))),
+    rule('open', chr('{')),
+    rule('close', chr('}')),
+    rule('value', seq(ref('label'), opt(seq(ref('open'), opt(rep(ref('value'))))))),
+);
+
+seq(ref('value'), opt());
+
+console.log(JSON.stringify(tree, null, 2));
+
+// document.querySelector('#id.aasd:last-child');
+
+// function select({ type }) {
+//     return {
+//         exec(tree: Rule) {
+//             tree.children
+//         },
+//     };
 // }
-
-const grammar = new Grammar({
-    label: seq(opt(alt(seq(chr('b'), chr('a'))))),
-});
-const parser = new Parser(grammar, 'label');
-console.log(parser.parse('asdasd'));
