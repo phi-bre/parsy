@@ -1,12 +1,17 @@
-type Without<T, U> = T extends U ? never : T;
+type ParsyWithout<T, U> = T extends U ? never : T;
+type ParsyRestToUnion<T> = T extends ParsyParser<infer R>
+    ? R extends ParsyContext
+        ? R
+        : never
+    : never;
 
 export interface ParsyParser<T extends ParsyContext> {
     (ctx: ParsyContext): T;
 }
 
-export interface ParsyText extends ParsyContext {
+export interface ParsyText<T extends string = string> extends ParsyContext {
     type: 'text';
-    text: string;
+    text: T;
 }
 
 export interface ParsyError extends ParsyContext {
@@ -18,8 +23,8 @@ export interface ParsyEmpty extends ParsyContext {
     type: 'empty';
 }
 
-export interface ParsyCollection<T extends ParsyContext> extends ParsyContext {
-    type: 'collection';
+export interface ParsyArray<T extends ParsyContext> extends ParsyContext {
+    type: 'array';
     children: T[];
 }
 
@@ -34,52 +39,104 @@ export interface ParsyTransformer<T, R> {
     (context: T extends ParsyError ? never : T): R;
 }
 
-export function string(value: string): ParsyParser<ParsyText | ParsyError> {
+function commit<T extends ParsyContext>(
+    ctx: ParsyContext,
+    length: number,
+    target: Partial<T>
+): T {
+    return {
+        source: ctx.source,
+        start: ctx.end,
+        end: ctx.end + length,
+        ...target,
+    } as T;
+}
+
+export function string<T extends string>(
+    value: T
+): ParsyParser<ParsyText<T> | ParsyError> {
     return function (ctx) {
         if (ctx.source.startsWith(value, ctx.end)) {
-            return { ...ctx, from: ctx.end, to: ctx.end + value.length, text: value, type: 'text' };
+            return {
+                source: ctx.source,
+                start: ctx.end,
+                end: ctx.end + value.length,
+                text: value,
+                type: 'text',
+            };
         } else {
-            return { ...ctx, expected: value, type: 'error' };
+            return {
+                source: ctx.source,
+                start: ctx.start,
+                end: ctx.end,
+                expected: value,
+                type: 'error',
+            };
         }
     };
 }
 
-export function regex(regex: RegExp, expected: string): ParsyParser<ParsyText | ParsyError> {
+export function regex(
+    regex: RegExp,
+    expected: string
+): ParsyParser<ParsyText | ParsyError> {
     return function (ctx) {
         regex.lastIndex = ctx.end;
         const match = regex.exec(ctx.source);
         if (match?.index === ctx.end) {
-            return { ...ctx, from: ctx.end, to: ctx.end + match[0].length, text: match[0], type: 'text' };
+            return {
+                source: ctx.source,
+                start: ctx.end,
+                end: ctx.end + match[0].length,
+                text: match[0],
+                type: 'text',
+            };
         } else {
-            return { ...ctx, expected, type: 'error' };
+            return {
+                source: ctx.source,
+                start: ctx.start,
+                end: ctx.end,
+                expected: expected,
+                type: 'error',
+            };
         }
     };
 }
 
-export function sequence<P extends ParsyContext>(...parsers: ParsyParser<P>[]): ParsyParser<ParsyCollection<Without<P, ParsyError> | ParsyError>> {
+export function sequence<T extends ParsyParser<ParsyContext>[]>(
+    ...parsers: T
+): ParsyParser<ParsyArray<ParsyRestToUnion<T[number]>>> {
     return function (ctx: ParsyContext) {
-        const children: Without<P, ParsyError>[] = [];
+        const children: ParsyRestToUnion<T[number]>[] = [];
         for (const parser of parsers) {
             const child: ParsyContext = parser(ctx);
-            if (child.type === 'error') return child as ParsyError;
-            children.push(child as Without<P, ParsyError>);
+            if (child.type === 'error') return child as any; // TODO
+            children.push(child as any); // TODO
             ctx = child;
         }
-        return { ...ctx, children, type: 'collection' } as any;
+        return {
+            source: ctx.source,
+            start: children[0]?.start ?? ctx.start,
+            end: children[children.length - 1]?.end ?? ctx.end,
+            children: children,
+            type: 'array',
+        };
     };
 }
 
-export function any<T extends ParsyParser<any>[]>(...parsers: T): ParsyParser<ReturnType<T[number]>> {
+export function any<T extends ParsyParser<ParsyContext>[]>(
+    ...parsers: T
+): ParsyParser<ParsyRestToUnion<T[number]>> {
     return function (ctx) {
         let furthest: ParsyError | null = null;
         for (const parser of parsers) {
             const token = parser(ctx);
-            if (token.type !== 'error') return token;
-            if (!furthest || furthest.start < token.index) {
-                furthest = token;
+            if (token.type !== 'error') return token as any; // TODO
+            if (!furthest || furthest.end < token.end) {
+                furthest = token as ParsyError;
             }
         }
-        return furthest;
+        return furthest!;
     };
 }
 
@@ -89,11 +146,23 @@ export function any<T extends ParsyParser<any>[]>(...parsers: T): ParsyParser<Re
 //     });
 // }
 
-export function optional<T extends ParsyContext>(parser: ParsyParser<T>): ParsyParser<T extends ParsyError ? (Without<T, ParsyError> | ParsyEmpty) : T> {
-    return any(parser, (ctx): ParsyEmpty => ({ ...ctx, type: 'empty' }));
+export function optional<T extends ParsyContext>(
+    parser: ParsyParser<T>
+): ParsyParser<T | ParsyEmpty> {
+    return any(
+        parser,
+        (ctx): ParsyEmpty => ({
+            source: ctx.source,
+            start: ctx.end,
+            end: ctx.end,
+            type: 'empty',
+        })
+    );
 }
 
-export function many<T extends ParsyContext>(parser: ParsyParser<T>): ParsyParser<ParsyCollection<T>> {
+export function many<T extends ParsyContext>(
+    parser: ParsyParser<T>
+): ParsyParser<ParsyArray<T>> {
     return function (ctx) {
         let children: T[] = [];
         let child: ParsyContext = ctx;
@@ -102,51 +171,63 @@ export function many<T extends ParsyContext>(parser: ParsyParser<T>): ParsyParse
             if (child.type === 'error') break;
             children.push(child as T);
         }
-        return { ...ctx, children, type: 'collection' };
+        return {
+            source: ctx.source,
+            start: children[0]?.start ?? ctx.start,
+            end: children[children.length - 1]?.end ?? ctx.end,
+            children: children,
+            type: 'array',
+        };
     };
 }
 
-export function transform<T extends ParsyContext, R extends ParsyContext>
-    (parser: ParsyParser<T>, transformer: ParsyTransformer<T, R>): ParsyParser<R | ParsyError> {
+export function transform<T extends ParsyContext, R extends ParsyContext>(
+    parser: ParsyParser<T>,
+    transformer: ParsyTransformer<T, R>
+): ParsyParser<R> {
     return function (ctx) {
-        const token: ParsyContext | ParsyError = parser(ctx);
-        if (token.type === 'error') return token as ParsyError;
-        return transformer(token as Without<T, ParsyError>);
+        const child: ParsyContext | ParsyError = parser(ctx);
+        if (child.type === 'error') return child as any; // TODO
+        return transformer(child as ParsyWithout<T, ParsyError>);
     };
+}
+
+function rule<C extends ParsyContext, T extends string>(
+    type: T,
+    parser: (type: T) => ParsyParser<C>
+): ParsyParser<C> {
+    return (ctx) => transform(parser(type), (ctx) => ({ ...ctx, type }))(ctx);
 }
 
 function parsy<T extends ParsyContext>(parser: ParsyParser<T>) {
     return function (source: string): T {
-        return parser({ source, start: 0, end: 0, type: 'parsy' });
+        return parser({ source, start: 0, end: 0, type: 'empty' });
     };
 }
 
-const num = transform(regex(/[+\-]?[0-9]+(\.[0-9]*)?/g, 'number'), ctx => {
-    return { ...ctx, number: Number(ctx.text), type: 'number' };
-});
+interface ParsyNumber extends ParsyContext {
+    type: 'number';
+    number: number;
+}
 
-const s = sequence(optional(string(',')), string('a'));
+const num = transform(
+    regex(/[+\-]?[0-9]+(\.[0-9]*)?/g, 'number'),
+    (ctx): ParsyNumber => {
+        return { ...ctx, number: Number(ctx.text), type: 'number' };
+    }
+);
 
 const id = regex(/[a-zA-Z][a-zA-Z0-9]*/g, 'identifier');
-const func = (ctx: ParsyContext) => sequence(id, string('('), many(sequence(expr, optional(string(',')))), string(')'))(ctx);
-const expr = any(func, num);
+const func: any = rule('func', () =>
+    sequence(
+        id,
+        string('('),
+        many(sequence(expr, optional(string(',')))),
+        string(')')
+    )
+);
+const expr: any = any(func, num);
 
-const source = 'Foo(Bar(1,2,3))';
 const parser = parsy(expr);
-console.log(JSON.stringify(parser(source), null, 2));
-
-const tree = parsy(s)(source);
-if (tree.type === 'text') {
-    console.log(tree.text);
-}
-
-interface asd { type: string }
-interface asf extends asd { type: 'a' }
-const a: asf = { type: 'a' };
-const b: asd = { type: 'b' };
-const c: asf | asd = b;
-
-if (c.type === 'a') {
-    a.type
-}
-
+const result = parser('a(1,asd(1,2,3),3)');
+console.log(JSON.stringify(result, null, 2));
