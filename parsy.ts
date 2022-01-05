@@ -37,27 +37,52 @@ export interface ParsyTransformer<T, R> {
   (context: T extends ParsyError ? never : T): R;
 }
 
+export function empty(ctx: ParsyContext): ParsyEmpty {
+  return {
+    type: "empty",
+    source: ctx.source,
+    start: ctx.end,
+    end: ctx.end,
+  };
+}
+
+export function array<T extends ParsyContext>(ctx: ParsyContext, children: T[]): ParsyArray<T> {
+  return {
+    type: "array",
+    source: ctx.source,
+    start: children[0]?.start ?? ctx.end,
+    end: children[children.length - 1]?.end ?? ctx.end,
+    children: children,
+  };
+}
+
+export function text<T extends string>(ctx: ParsyContext, text: T): ParsyText<T> {
+  return {
+    type: "text",
+    source: ctx.source,
+    start: ctx.end,
+    end: ctx.end + text.length,
+    text: text,
+  };
+}
+
+export function error(ctx: ParsyContext, expected: string): ParsyError {
+  return {
+    type: "error",
+    source: ctx.source,
+    start: ctx.start,
+    end: ctx.end,
+    expected: expected,
+  };
+}
+
 export function string<T extends string>(
   value: T,
 ): ParsyParser<ParsyText<T> | ParsyError> {
   return function (ctx) {
-    if (ctx.source.startsWith(value, ctx.end)) {
-      return {
-        source: ctx.source,
-        start: ctx.end,
-        end: ctx.end + value.length,
-        text: value,
-        type: "text",
-      };
-    } else {
-      return {
-        source: ctx.source,
-        start: ctx.start,
-        end: ctx.end,
-        expected: value,
-        type: "error",
-      };
-    }
+    return ctx.source.startsWith(value, ctx.end)
+        ? text(ctx, value)
+        : error(ctx, value);
   };
 }
 
@@ -68,23 +93,9 @@ export function regex(
   return function (ctx) {
     regex.lastIndex = ctx.end;
     const match = regex.exec(ctx.source);
-    if (match?.index === ctx.end) {
-      return {
-        source: ctx.source,
-        start: ctx.end,
-        end: ctx.end + match[0].length,
-        text: match[0],
-        type: "text",
-      };
-    } else {
-      return {
-        source: ctx.source,
-        start: ctx.start,
-        end: ctx.end,
-        expected: expected,
-        type: "error",
-      };
-    }
+    return match?.index === ctx.end
+        ? text(ctx, match[0])
+        : error(ctx, expected);
   };
 }
 
@@ -96,16 +107,10 @@ export function sequence<T extends ParsyParser<ParsyContext>[]>(
     for (const parser of parsers) {
       const child: ParsyContext = parser(ctx);
       if (child.type === "error") return child as any; // TODO
-      children.push(child as any); // TODO
+      if (child.type !== "empty") children.push(child as any); // TODO
       ctx = child;
     }
-    return {
-      source: ctx.source,
-      start: children[0]?.start ?? ctx.start,
-      end: children[children.length - 1]?.end ?? ctx.end,
-      children: children,
-      type: "array",
-    };
+    return array(ctx, children);
   };
 }
 
@@ -125,27 +130,14 @@ export function any<T extends ParsyParser<ParsyContext>[]>(
   };
 }
 
-export function skip<T, S>(parser: ParsyParser<T, S>): ParsyParser<ParsyError | null> {
-    return transform(parser, (ctx): ParsyEmpty => ({
-        source: ctx.source,
-        start: ctx.end,
-        end: ctx.end,
-        type: "empty",
-    }));
+export function skip<T extends ParsyContext>(parser: ParsyParser<T>): ParsyParser<ParsyError | ParsyEmpty> {
+    return transform(parser, empty);
 }
 
 export function optional<T extends ParsyContext>(
   parser: ParsyParser<T>,
 ): ParsyParser<T | ParsyEmpty> {
-  return any(
-    parser,
-    (ctx): ParsyEmpty => ({
-      source: ctx.source,
-      start: ctx.end,
-      end: ctx.end,
-      type: "empty",
-    }),
-  );
+  return any(parser, empty);
 }
 
 export function many<T extends ParsyContext>(
@@ -159,13 +151,7 @@ export function many<T extends ParsyContext>(
       if (child.type === "error") break;
       children.push(child as T);
     }
-    return {
-      source: ctx.source,
-      start: children[0]?.start ?? ctx.start,
-      end: children[children.length - 1]?.end ?? ctx.end,
-      children: children,
-      type: "array",
-    };
+    return array(ctx, children);
   };
 }
 
