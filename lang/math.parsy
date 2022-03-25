@@ -1,0 +1,22 @@
+math
+  = additive
+  ;
+
+additive
+  = left:multiplicative "+" right:additive
+  | multiplicative
+  ;
+
+multiplicative
+  = left:primary "*" right:multiplicative
+  | primary
+  ;
+
+primary
+  = integer
+  | "(" additive:additive ")"
+  ;
+
+integer
+  = digits:[0-9]+
+  ;
