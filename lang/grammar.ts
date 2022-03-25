@@ -1,13 +1,13 @@
 import * as parsy from "../parsy.ts";
 
 const whitespace = parsy.rule({
-  type: "whitespace",
+  type: "_",
   parser: parsy.regex(/(\r|\n|\\r|\\n| )*/),
 });
 
 const terminator = parsy.rule({
   type: "terminator",
-  parser: parsy.string(";"),
+  parser: parsy.text(";"),
 });
 
 const identifier = parsy.rule({
@@ -42,7 +42,7 @@ const expression: any = parsy.rule({
     parsy.star(
       parsy.and(
         whitespace,
-        parsy.string("|"),
+        parsy.text("|"),
         whitespace,
         (ctx) => predicate_expression(ctx),
       ),
@@ -81,7 +81,7 @@ const labeled_expression = parsy.rule({
   parser: parsy.or(
     parsy.and(
       identifier,
-      parsy.string(":"),
+      parsy.text(":"),
       (ctx) => modified_expression(ctx),
     ),
     (ctx) => modified_expression(ctx),
@@ -111,11 +111,11 @@ const primary_expression = parsy.rule({
 });
 
 const braced_expression = parsy.and(
-  parsy.string("("),
+  parsy.text("("),
   whitespace,
   (ctx) => expression(ctx),
   whitespace,
-  parsy.string(")"),
+  parsy.text(")"),
 );
 
 const rule = parsy.rule({
@@ -123,7 +123,7 @@ const rule = parsy.rule({
   parser: parsy.and(
     identifier,
     whitespace,
-    parsy.string("="),
+    parsy.text("="),
     whitespace,
     expression,
     whitespace,
