@@ -3,7 +3,7 @@ import math from "./math.ts";
 
 const source = "1 + 123 * (10 + 10)^sin(x)"; // await Deno.readTextFile("./math.parsy");
 const parser = parsy.parsy(math);
-print(parser(source));
+print(parser.parse(source));
 
 function print(ctx: parsy.ParsyContext) {
   function nest(ctx: parsy.ParsyContext, padding: number) {
@@ -21,7 +21,7 @@ function print(ctx: parsy.ParsyContext) {
       return;
     }
 
-    if (ctx instanceof parsy.ParsyChildren) {
+    if (ctx.children.length > 0) {
       console.log(`${indent}${ctx.type} {`);
       for (const child of ctx.children) {
         nest(child, padding + 2);

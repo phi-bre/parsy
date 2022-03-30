@@ -1,70 +1,67 @@
-import type { ParsyContext } from "../parsy.ts";
-import { and, optional, or, regex, rule, star, text } from "../parsy.ts";
+import * as parsy from "../parsy.ts";
 
-const _ = rule({
-  type: "_",
-  parser: regex(/\s*/),
-});
+const _ = parsy.label("_")(parsy.regex(/\s*/));
+const number = parsy.label("number")(parsy.regex(/[0-9]+/));
+const identifier = parsy.label("identifier")(parsy.regex(/[a-zA-Z]+/));
 
-const number = rule({
-  type: "number",
-  parser: regex(/[0-9]+/),
-});
+const call = parsy.dynamic();
+const primary = parsy.dynamic();
+const factor = parsy.dynamic();
+const multiplicative = parsy.dynamic();
+const additive = parsy.dynamic();
 
-const identifier = rule({
-  type: "identifier",
-  parser: regex(/[a-zA-Z]+/),
-});
-
-const call = rule({
-  type: "call",
-  parser: and(
-    identifier,
-    _,
-    text("("),
-    star(
-      and(
-        (ctx) => additive(ctx),
-        _,
-        optional(text(",")),
+call.set(
+  parsy.label("call")(
+    parsy.and(
+      identifier,
+      _,
+      parsy.text("("),
+      parsy.star(
+        parsy.and(
+          additive,
+          _,
+          parsy.optional(parsy.text(",")),
+        ),
       ),
+      parsy.text(")"),
     ),
-    text(")"),
   ),
-});
+);
 
-const primary = rule({
-  type: "primary",
-  parser: or(
-    number,
-    call,
-    identifier,
-    and(text("("), _, (ctx) => additive(ctx), _, text(")")),
+primary.set(
+  parsy.label("primary")(
+    parsy.or(
+      number,
+      call,
+      identifier,
+      parsy.and(parsy.text("("), _, additive, _, parsy.text(")")),
+    ),
   ),
-});
-
-const factor = or(
-  rule({
-    type: "factor",
-    parser: and(primary, _, text("^"), _, (ctx) => factor(ctx)),
-  }),
-  primary,
 );
 
-const multiplicative = or(
-  rule({
-    type: "multiplicative",
-    parser: and(factor, _, regex(/[*/]/), _, (ctx) => multiplicative(ctx)),
-  }),
-  factor,
+factor.set(
+  parsy.or(
+    parsy.label("factor")(parsy.and(primary, _, parsy.text("^"), _, factor)),
+    primary,
+  ),
 );
 
-const additive = or(
-  rule({
-    type: "additive",
-    parser: and(multiplicative, _, regex(/[+-]/), _, (ctx) => additive(ctx)),
-  }),
-  multiplicative,
+multiplicative.set(
+  parsy.or(
+    parsy.label("multiplicative")(
+      parsy.and(factor, _, parsy.regex(/[*/]/), _, multiplicative),
+    ),
+    factor,
+  ),
 );
 
-export default (ctx: ParsyContext) => additive(ctx);
+additive.set(
+  parsy.or(
+    parsy.label("additive")(
+      parsy.and(multiplicative, _, parsy.regex(/[+-]/), _, additive),
+    ),
+    multiplicative,
+  ),
+);
+
+export default additive;
